@@ -98,15 +98,14 @@
             <p class="text-xs text-slate-400 mb-8 font-medium italic"><i class="fa-solid fa-link"></i> Dữ liệu được đồng bộ từ Lark Base</p>
             
             <div class="grid grid-cols-2 gap-5">
+                <!-- MENU CƠ SỞ ĐÃ ĐƯỢC CẬP NHẬT -->
                 <div class="col-span-2">
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Căn hộ / Cơ sở</label>
                     <select id="in_building" onchange="updateBill()" class="block w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-3 border outline-none bg-slate-50 font-medium cursor-pointer">
-                        <option value="Cơ sở 1" selected>SVY Home - Cơ sở 1 (VN)</option>
-                        <option value="Cơ sở 2">SVY Home - Cơ sở 2 (VN)</option>
-                        <option value="Cơ sở 3">SVY Home - Cơ sở 3 (VN)</option>
-                        <option value="Cơ sở 4">SVY Home - Cơ sở 4 (EN)</option>
-                        <option value="Cơ sở 5">SVY Home - Cơ sở 5 (EN)</option>
-                        <option value="Cơ sở 6">SVY Home - Cơ sở 6 (EN)</option>
+                        <option value="38HD" selected>SVY Home - 38HD (VN)</option>
+                        <option value="46HD">SVY Home - 46HD (VN)</option>
+                        <option value="128TL">SVY Home - 128TL (VN)</option>
+                        <option value="07KMD10">SVY Apartment - 07KMD10 (EN)</option>
                     </select>
                 </div>
                 <div class="col-span-1">
@@ -120,11 +119,7 @@
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Phòng / Room</label>
-                    <select id="in_room" onchange="updateBill()" class="block w-full rounded-xl border-slate-200 shadow-sm text-sm p-3 border outline-none bg-slate-50 font-medium cursor-pointer">
-                        <option value="101" selected>101</option><option value="102">102</option><option value="201">201</option>
-                        <option value="202">202</option><option value="203">203</option>
-                        <option value="301">301</option><option value="302">302</option>
-                    </select>
+                    <input type="text" id="in_room" value="101" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
                 </div>
                 
                 <div class="col-span-2">
@@ -165,7 +160,6 @@
                     <input type="number" id="in_wifi" value="30000" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
                 </div>
 
-                <!-- Đã cập nhật layout thêm Phí Dịch Vụ -->
                 <div class="col-span-1">
                     <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Dịch vụ / Service</label>
                     <input type="number" id="in_service_fee" value="0" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
@@ -255,13 +249,11 @@
                                 <td class="py-3 font-semibold text-[15px]" id="lbl_wifi">Tiền wifi</td>
                                 <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_wifi">30.000</td>
                             </tr>
-                            <!-- Dòng mới thêm: Phí dịch vụ -->
                             <tr class="border-b border-slate-50">
                                 <td class="py-3 font-bold text-slate-400">5</td>
                                 <td class="py-3 font-semibold text-[15px]" id="lbl_service_fee">Phí dịch vụ</td>
                                 <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_service_fee">0</td>
                             </tr>
-                            <!-- Mục khác đẩy xuống số 6 -->
                             <tr class="border-b border-slate-50">
                                 <td class="py-3 font-bold text-slate-400">6</td>
                                 <td class="py-3 font-semibold text-[15px]" id="lbl_other">Mục khác</td>
@@ -314,7 +306,7 @@
                             
                             <div class="mt-3.5 pt-3.5 border-t border-blue-100/50">
                                 <p class="text-[9px] text-slate-500 font-bold uppercase mb-1" id="lbl_pay_code">Mã thanh toán (Nội dung CK):</p>
-                                <p class="text-[16px] text-slate-800 font-black tracking-widest" id="view_payment_code">CS1P101T3Y2026</p>
+                                <p class="text-[16px] text-slate-800 font-black tracking-widest" id="view_payment_code">38HDP101T3Y2026</p>
                                 <p class="text-[9px] text-red-500 mt-1.5 font-semibold italic leading-tight" id="lbl_pay_reminder">* Vui lòng ghi chính xác nội dung ck</p>
                             </div>
                         </div>
@@ -355,16 +347,13 @@
         };
 
         const accountMapping = {
-            "Cơ sở 1": { maCoSo: "CS1", address: "38 Hoàng Diệu, Đà Nẵng", bankId: "VIB", bankName: "VIB Bank", acc: "426704060074888", owner: "TRAN THI YEN PHUONG" },
-            "Cơ sở 2": { maCoSo: "CS2", address: "152 Nguyễn Văn Linh, Đà Nẵng", bankId: "VIB", bankName: "VIB Bank", acc: "426704060074888", owner: "TRAN THI YEN PHUONG" },
-            "Cơ sở 3": { maCoSo: "CS3", address: "89 Lê Duẩn, Đà Nẵng", bankId: "VIB", bankName: "VIB Bank", acc: "426704060074888", owner: "TRAN THI YEN PHUONG" },
-            "Cơ sở 4": { maCoSo: "CS4", address: "20 Bạch Đằng, Đà Nẵng", bankId: "VCB", bankName: "Vietcombank", acc: "1012345678", owner: "ACCOUNT B" },
-            "Cơ sở 5": { maCoSo: "CS5", address: "45 Trần Phú, Đà Nẵng", bankId: "VCB", bankName: "Vietcombank", acc: "1012345678", owner: "ACCOUNT B" },
-            "Cơ sở 6": { maCoSo: "CS6", address: "99 Phạm Văn Đồng, Đà Nẵng", bankId: "TCB", bankName: "Techcombank", acc: "1908765432", owner: "ACCOUNT C" }
+            "38HD": { maCoSo: "38HD", address: "38 Hoàng Diệu, Đà Nẵng", bankId: "VIB", bankName: "VIB Bank", acc: "426704060074888", owner: "TRAN THI YEN PHUONG" },
+            "46HD": { maCoSo: "46HD", address: "46 Hoàng Diệu, Đà Nẵng", bankId: "VIB", bankName: "VIB Bank", acc: "426704060074888", owner: "TRAN THI YEN PHUONG" },
+            "128TL": { maCoSo: "128TL", address: "128 Thăng Long, Đà Nẵng", bankId: "VIB", bankName: "VIB Bank", acc: "426704060074888", owner: "TRAN THI YEN PHUONG" },
+            "07KMD10": { maCoSo: "07KMD10", address: "07 Khuê Mỹ Đông 10, Đà Nẵng", bankId: "VCB", bankName: "Vietcombank", acc: "1012345678", owner: "ACCOUNT B" }
         };
 
         function formatMoney(num) { 
-            // Dùng để xử lý cả số âm, ví dụ: -500.000
             return new Intl.NumberFormat('vi-VN').format(num).replace(/,/g, '.'); 
         }
         
@@ -385,7 +374,6 @@
 
         function loadDataFromURL() {
             const params = new URLSearchParams(window.location.search);
-            // Cập nhật thêm s_fee vào URL params
             const mapping = {
                 'building': 'in_building', 'month': 'in_month', 'room': 'in_room',
                 'tenant': 'in_tenant', 'link': 'in_group_link', 'e_old': 'in_elec_old',
@@ -441,13 +429,12 @@
             const serviceFee = parseInt(document.getElementById('in_service_fee').value) || 0;
             const other = parseInt(document.getElementById('in_other').value) || 0;
             
-            // Tổng cộng = Thuê + Điện + Nước + Wifi + Dịch vụ + Khác (Khác có thể là số âm)
             const total = rent + eTotal + water + wifi + serviceFee + other;
 
-            const isEnglish = ["Cơ sở 4", "Cơ sở 5", "Cơ sở 6"].some(b => building.includes(b));
+            const isEnglish = ["07KMD10"].some(b => building.includes(b));
             const l = isEnglish ? langs.en : langs.vi;
 
-            const acc = accountMapping[building] || accountMapping["Cơ sở 1"];
+            const acc = accountMapping[building] || accountMapping["38HD"];
             const paymentCode = `${acc.maCoSo}P${room}T${month}Y${year}`;
 
             const safeUpdate = (id, text) => {
