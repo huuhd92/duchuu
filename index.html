@@ -10,10 +10,9 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         
-        /* Cập nhật container tỷ lệ 9:16 chuẩn mobile (Full màn hình) */
         .bill-container { 
             width: 480px; 
-            min-height: 853px; /* Tỷ lệ vàng 9:16 */
+            min-height: 853px;
             background: white; 
             padding: 45px; 
             position: relative; 
@@ -165,13 +164,18 @@
                     <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Wifi</label>
                     <input type="number" id="in_wifi" value="30000" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
                 </div>
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Mục Khác / Others</label>
+
+                <!-- Đã cập nhật layout thêm Phí Dịch Vụ -->
+                <div class="col-span-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Dịch vụ / Service</label>
+                    <input type="number" id="in_service_fee" value="0" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Khác / Others (+/-)</label>
                     <input type="number" id="in_other" value="0" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
                 </div>
             </div>
 
-            <!-- BỐ CỤC NÚT MỚI: Chỉ còn Copy và Mở App -->
             <div class="mt-10 grid grid-cols-2 gap-4">
                 <button onclick="copyBillToClipboard()" class="col-span-1 bg-blue-600 text-white font-black uppercase tracking-wider py-4 rounded-2xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-xl shadow-blue-200 active:scale-95 text-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
@@ -191,7 +195,7 @@
             <textarea id="in_message" class="hidden"></textarea>
         </div>
 
-        <!-- CỘT PHẢI: PREVIEW HÓA ĐƠN (TỶ LỆ MOBILE FULL-SCREEN) -->
+        <!-- CỘT PHẢI: PREVIEW HÓA ĐƠN -->
         <div class="flex justify-center items-start">
             <div id="bill-preview" class="bill-container rounded-[2.5rem] shadow-2xl">
                 <!-- Phần Đầu -->
@@ -232,39 +236,46 @@
                         </thead>
                         <tbody class="text-slate-700">
                             <tr class="border-b border-slate-50">
-                                <td class="py-4 font-bold text-slate-400">1</td>
-                                <td class="py-4 font-semibold text-[15px]" id="lbl_rent">Tiền thuê nhà</td>
-                                <td class="py-4 text-right font-black text-slate-900 text-[15px]" id="view_rent">2.100.000</td>
+                                <td class="py-3 font-bold text-slate-400">1</td>
+                                <td class="py-3 font-semibold text-[15px]" id="lbl_rent">Tiền thuê nhà</td>
+                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_rent">2.100.000</td>
                             </tr>
                             <tr class="border-b border-slate-50">
-                                <td class="py-4 font-bold text-slate-400">2</td>
-                                <td class="py-4 font-semibold text-[15px]" id="lbl_elec">Tiền điện</td>
-                                <td class="py-4 text-right font-black text-slate-900 text-[15px]" id="view_elec_total">384.000</td>
+                                <td class="py-3 font-bold text-slate-400">2</td>
+                                <td class="py-3 font-semibold text-[15px]" id="lbl_elec">Tiền điện</td>
+                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_elec_total">384.000</td>
                             </tr>
                             <tr class="border-b border-slate-50">
-                                <td class="py-4 font-bold text-slate-400">3</td>
-                                <td class="py-4 font-semibold text-[15px]" id="lbl_water">Tiền nước</td>
-                                <td class="py-4 text-right font-black text-slate-900 text-[15px]" id="view_water">50.000</td>
+                                <td class="py-3 font-bold text-slate-400">3</td>
+                                <td class="py-3 font-semibold text-[15px]" id="lbl_water">Tiền nước</td>
+                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_water">50.000</td>
                             </tr>
                             <tr class="border-b border-slate-50">
-                                <td class="py-4 font-bold text-slate-400">4</td>
-                                <td class="py-4 font-semibold text-[15px]" id="lbl_wifi">Tiền wifi</td>
-                                <td class="py-4 text-right font-black text-slate-900 text-[15px]" id="view_wifi">30.000</td>
+                                <td class="py-3 font-bold text-slate-400">4</td>
+                                <td class="py-3 font-semibold text-[15px]" id="lbl_wifi">Tiền wifi</td>
+                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_wifi">30.000</td>
                             </tr>
+                            <!-- Dòng mới thêm: Phí dịch vụ -->
                             <tr class="border-b border-slate-50">
-                                <td class="py-4 font-bold text-slate-400">5</td>
-                                <td class="py-4 font-semibold text-[15px]" id="lbl_other">Mục khác</td>
-                                <td class="py-4 text-right font-black text-slate-900 text-[15px]" id="view_other">0</td>
+                                <td class="py-3 font-bold text-slate-400">5</td>
+                                <td class="py-3 font-semibold text-[15px]" id="lbl_service_fee">Phí dịch vụ</td>
+                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_service_fee">0</td>
+                            </tr>
+                            <!-- Mục khác đẩy xuống số 6 -->
+                            <tr class="border-b border-slate-50">
+                                <td class="py-3 font-bold text-slate-400">6</td>
+                                <td class="py-3 font-semibold text-[15px]" id="lbl_other">Mục khác</td>
+                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_other">0</td>
                             </tr>
                             <tr class="bg-blue-50/40">
-                                <td colspan="2" class="py-5 px-4 text-blue-800 font-black text-[17px] uppercase tracking-tighter" id="lbl_total">Tổng cộng</td>
-                                <td class="py-5 px-4 text-right text-blue-800 font-black text-[22px] tracking-tighter" id="view_total">2.564.000</td>
+                                <td colspan="2" class="py-4 px-4 text-blue-800 font-black text-[17px] uppercase tracking-tighter" id="lbl_total">Tổng cộng</td>
+                                <td class="py-4 px-4 text-right text-blue-800 font-black text-[22px] tracking-tighter" id="view_total">2.564.000</td>
                             </tr>
                         </tbody>
                     </table>
 
                     <!-- CHI TIẾT ĐIỆN -->
-                    <div class="mt-8 mb-8 flex justify-center">
+                    <div class="mt-6 mb-8 flex justify-center">
                         <div class="bg-slate-50/80 rounded-2xl border border-slate-100 p-5 w-full flex justify-between text-center items-center">
                             <div>
                                 <p class="text-[9px] font-black text-slate-400 uppercase mb-1" id="lbl_elec_old">Điện cũ</p>
@@ -301,11 +312,10 @@
                                 <p class="text-[11px] text-slate-500 font-bold uppercase" id="view_bank_owner">TRAN THI YEN PHUONG</p>
                             </div>
                             
-                            <!-- Bổ sung Mã thanh toán -->
                             <div class="mt-3.5 pt-3.5 border-t border-blue-100/50">
                                 <p class="text-[9px] text-slate-500 font-bold uppercase mb-1" id="lbl_pay_code">Mã thanh toán (Nội dung CK):</p>
                                 <p class="text-[16px] text-slate-800 font-black tracking-widest" id="view_payment_code">CS1P101T3Y2026</p>
-                                <p class="text-[9px] text-red-500 mt-1.5 font-semibold italic leading-tight" id="lbl_pay_reminder">* Vui lòng ghi chính xác Mã TT để gạch nợ tự động.</p>
+                                <p class="text-[9px] text-red-500 mt-1.5 font-semibold italic leading-tight" id="lbl_pay_reminder">* Vui lòng ghi chính xác nội dung ck</p>
                             </div>
                         </div>
                     </div>
@@ -325,21 +335,21 @@
             vi: {
                 main: "HÓA ĐƠN", sub: "Chi Tiết Tiền Phòng", month: "Tháng", room: "Phòng", tenant: "Khách thuê",
                 stt: "STT", desc: "Mô tả", amount: "Thành tiền", rent: "Tiền thuê nhà", elec: "Tiền điện",
-                water: "Tiền nước", wifi: "Tiền wifi", other: "Mục khác", total: "Tổng cộng", payInfo: "Thông tin chuyển khoản",
+                water: "Tiền nước", wifi: "Tiền wifi", serviceFee: "Phí dịch vụ", other: "Mục khác", total: "Tổng cộng", payInfo: "Thông tin chuyển khoản",
                 dueDate: "* Hạn nộp: Trước ngày 05 hàng tháng.",
                 elecOld: "Điện cũ", elecNew: "Điện mới", elecUsed: "Sử dụng", elecPrice: "Đơn giá", elecSub: "Thành tiền",
                 payCode: "Mã thanh toán (Nội dung CK):",
-                payReminder: "* Vui lòng ghi chính xác Mã TT để gạch nợ tự động.",
+                payReminder: "* Vui lòng ghi chính xác nội dung ck",
                 defaultMsg: (room, month, year, code) => `Chào bạn, SVY Home gửi hóa đơn tiền phòng ${room} tháng ${month}/${year}.\nKhi chuyển khoản thủ công, bạn nhớ ghi Nội dung CK là: ${code} nhé.`
             },
             en: {
                 main: "INVOICE", sub: "Rental Summary", month: "Month", room: "Room", tenant: "Tenant",
                 stt: "#", desc: "Description", amount: "Amount", rent: "Monthly Rent", elec: "Electricity",
-                water: "Water Service", wifi: "Wifi Service", other: "Other charges", total: "Total Amount", payInfo: "Bank Transfer Details",
+                water: "Water Service", wifi: "Wifi Service", serviceFee: "Service Fee", other: "Other charges", total: "Total Amount", payInfo: "Bank Transfer Details",
                 dueDate: "* Due date: Before the 5th of every month.",
                 elecOld: "Old Meter", elecNew: "New Meter", elecUsed: "Used", elecPrice: "Price", elecSub: "Subtotal",
                 payCode: "Payment Code (Transfer Remark):",
-                payReminder: "* Please enter the exact Payment Code for automatic reconciliation.",
+                payReminder: "* Please enter the exact Payment Code",
                 defaultMsg: (room, month, year, code) => `Hi, SVY Apartment is sending the rental invoice for Room ${room} (Month ${month}/${year}).\nIf transferring manually, please use ${code} as the transfer remark.`
             }
         };
@@ -353,8 +363,10 @@
             "Cơ sở 6": { maCoSo: "CS6", address: "99 Phạm Văn Đồng, Đà Nẵng", bankId: "TCB", bankName: "Techcombank", acc: "1908765432", owner: "ACCOUNT C" }
         };
 
-        // Sử dụng dấu "." làm phân cách hàng nghìn cho chuẩn giao diện
-        function formatMoney(num) { return new Intl.NumberFormat('vi-VN').format(num).replace(/,/g, '.'); }
+        function formatMoney(num) { 
+            // Dùng để xử lý cả số âm, ví dụ: -500.000
+            return new Intl.NumberFormat('vi-VN').format(num).replace(/,/g, '.'); 
+        }
         
         function closeModal() { document.getElementById('copy-modal').style.display = 'none'; }
 
@@ -373,11 +385,12 @@
 
         function loadDataFromURL() {
             const params = new URLSearchParams(window.location.search);
+            // Cập nhật thêm s_fee vào URL params
             const mapping = {
                 'building': 'in_building', 'month': 'in_month', 'room': 'in_room',
                 'tenant': 'in_tenant', 'link': 'in_group_link', 'e_old': 'in_elec_old',
                 'e_new': 'in_elec_new', 'rent': 'in_rent', 'e_price': 'in_elec_price',
-                'water': 'in_water', 'wifi': 'in_wifi', 'other': 'in_other'
+                'water': 'in_water', 'wifi': 'in_wifi', 's_fee': 'in_service_fee', 'other': 'in_other'
             };
             for (const [key, id] of Object.entries(mapping)) {
                 if (params.has(key)) {
@@ -425,8 +438,11 @@
             const rent = parseInt(document.getElementById('in_rent').value) || 0;
             const water = parseInt(document.getElementById('in_water').value) || 0;
             const wifi = parseInt(document.getElementById('in_wifi').value) || 0;
+            const serviceFee = parseInt(document.getElementById('in_service_fee').value) || 0;
             const other = parseInt(document.getElementById('in_other').value) || 0;
-            const total = rent + eTotal + water + wifi + other;
+            
+            // Tổng cộng = Thuê + Điện + Nước + Wifi + Dịch vụ + Khác (Khác có thể là số âm)
+            const total = rent + eTotal + water + wifi + serviceFee + other;
 
             const isEnglish = ["Cơ sở 4", "Cơ sở 5", "Cơ sở 6"].some(b => building.includes(b));
             const l = isEnglish ? langs.en : langs.vi;
@@ -439,7 +455,6 @@
                 if (el) el.innerText = text;
             };
 
-            // Thay đổi thương hiệu dựa trên ngôn ngữ
             const brandName = isEnglish ? "SVY Apartment" : "SVY Home";
             safeUpdate('view_brand_name', brandName);
             safeUpdate('view_address', acc.address);
@@ -453,6 +468,7 @@
             safeUpdate('lbl_elec', l.elec);
             safeUpdate('lbl_water', l.water);
             safeUpdate('lbl_wifi', l.wifi);
+            safeUpdate('lbl_service_fee', l.serviceFee);
             safeUpdate('lbl_other', l.other);
             safeUpdate('lbl_total', l.total);
             safeUpdate('lbl_pay_info', l.payInfo);
@@ -475,6 +491,7 @@
             safeUpdate('view_elec_total', formatMoney(eTotal));
             safeUpdate('view_water', formatMoney(water));
             safeUpdate('view_wifi', formatMoney(wifi));
+            safeUpdate('view_service_fee', formatMoney(serviceFee));
             safeUpdate('view_other', formatMoney(other));
             safeUpdate('view_total', formatMoney(total));
             safeUpdate('view_elec_old', formatMoney(eOld));
@@ -502,7 +519,6 @@
             const msg = document.getElementById('in_message').value;
 
             try {
-                // Render ảnh sắc nét hơn với scale 3
                 const canvas = await html2canvas(element, { scale: 3, useCORS: true, backgroundColor: "#ffffff" });
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                 
