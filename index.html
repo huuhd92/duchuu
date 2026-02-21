@@ -27,21 +27,6 @@
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
             overflow: visible; 
         }
-        
-        #copy-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            justify-content: center; align-items: center; padding: 20px;
-        }
-        .modal-content {
-            background: white; padding: 30px; border-radius: 24px;
-            max-width: 500px; width: 100%; text-align: center; 
-            position: relative;
-        }
 
         .side-action-btn {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -212,23 +197,6 @@
 
     </div>
 
-    <!-- Modal hỗ trợ copy thủ công -->
-    <div id="copy-modal" onclick="if(event.target === this) closeModal()">
-        <div class="modal-content shadow-2xl">
-            <h3 class="text-xl font-bold mb-4 text-slate-800">Copy Ảnh Hóa Đơn</h3>
-            <div class="space-y-4 text-left">
-                <div class="bg-slate-50 p-4 rounded-2xl border">
-                    <p class="text-[10px] text-slate-400 mb-4 italic text-center leading-relaxed">
-                        Trình duyệt không hỗ trợ tự động. <br>
-                        Vui lòng <b>Nhấn giữ</b> hoặc <b>Chuột phải</b> vào ảnh bên dưới -> Chọn <b>"Sao chép hình ảnh"</b>.
-                    </p>
-                    <div id="modal-image-container" class="border rounded-xl overflow-hidden flex justify-center bg-white shadow-inner min-h-[200px]"></div>
-                </div>
-            </div>
-            <button onclick="closeModal()" class="mt-8 w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs">Đóng lại</button>
-        </div>
-    </div>
-
     <!-- Dữ liệu ẩn -->
     <div class="hidden">
         <input type="text" id="hidden_link">
@@ -243,7 +211,6 @@
         };
 
         function formatMoney(n) { return new Intl.NumberFormat('vi-VN').format(n).replace(/,/g, '.'); }
-        function closeModal() { document.getElementById('copy-modal').style.display = 'none'; }
 
         function showStatus(text, type = 'info') {
             const el = document.getElementById('status-container');
@@ -316,7 +283,7 @@
             // 1. Thực hiện copy ảnh
             const success = await copyBillToClipboard();
             
-            // 2. Mở nhóm chat sau một chút thời gian để không bị trình duyệt chặn
+            // 2. Mở nhóm chat sau một chút thời gian
             if (success) {
                 setTimeout(() => {
                     openGroupDirect(link);
@@ -354,10 +321,8 @@
                     showStatus("✨ Đã Copy! Đang mở nhóm...", "success");
                     return true;
                 } catch (e) {
-                    const imgData = canvas.toDataURL("image/png");
-                    document.getElementById('modal-image-container').innerHTML = `<img src="${imgData}" class="max-w-full rounded-xl shadow-inner">`;
-                    document.getElementById('copy-modal').style.display = 'flex';
-                    showStatus("Vui lòng copy thủ công!", "info");
+                    // Nếu lỗi do trình duyệt không hỗ trợ API ClipboardItem
+                    showStatus("Trình duyệt không hỗ trợ copy tự động.", "error");
                     return true; // Vẫn tiếp tục mở nhóm
                 }
             } catch (e) { 
