@@ -26,7 +26,7 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            overflow: visible; /* Quan trọng để không mất nội dung khi chụp */
+            overflow: visible; 
         }
         
         #copy-modal {
@@ -319,7 +319,8 @@
             qrImg.src = `https://img.vietqr.io/image/${acc.bank}-${acc.acc}-qr_only.png?amount=${total}&addInfo=${encodeURIComponent(paymentCode)}&accountName=${encodeURIComponent(acc.owner)}`;
             
             document.getElementById('hidden_link').value = link;
-            document.getElementById('hidden_msg').value = `Chào bạn, SVY Home gửi hóa đơn tiền phòng ${room} tháng ${month}/${year}.\nNội dung chuyển khoản: ${paymentCode}`;
+            // Sửa nội dung lời nhắn để ngắn gọn và đầy đủ
+            document.getElementById('hidden_msg').value = `Chào bạn, SVY Home gửi hóa đơn tiền phòng ${room} tháng ${month}/${year}.\nSố tiền: ${formatMoney(total)}đ\nNội dung chuyển khoản: ${paymentCode}`;
             
             updateGroupButtonUI(link);
         }
@@ -342,35 +343,32 @@
         }
 
         async function copyBillToClipboard() {
-            // 1. Đưa màn hình về đầu để html2canvas không bị lệch tọa độ
             window.scrollTo(0, 0);
-            
             showStatus("Đang chuẩn bị ảnh...");
+            
             const el = document.getElementById('bill-preview');
             const msg = document.getElementById('hidden_msg').value;
             const qrImg = document.getElementById('qr_img');
 
-            // 2. Kiểm tra ảnh QR đã tải xong chưa
             if (!qrImg.complete) {
                 showStatus("Ảnh QR chưa tải xong, vui lòng đợi 1 giây...", "error");
                 return;
             }
 
             try {
-                // 3. Chụp ảnh với thiết lập chuẩn xác
                 const canvas = await html2canvas(el, { 
                     scale: 3, 
                     useCORS: true, 
                     backgroundColor: "#ffffff",
                     logging: false,
-                    width: 480, // Khóa cứng chiều rộng chụp
-                    height: el.offsetHeight // Tự động lấy chiều cao thực tế của element
+                    width: 480,
+                    height: el.offsetHeight
                 });
                 
                 const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 1.0));
                 
                 try {
-                    // 4. Cố gắng copy vào Clipboard (Ảnh + Text)
+                    // Cải tiến: Tạo ClipboardItem với định dạng chuẩn nhất
                     const data = [new ClipboardItem({ 
                         "image/png": blob, 
                         "text/plain": new Blob([msg], { type: "text/plain" }) 
@@ -378,7 +376,6 @@
                     await navigator.clipboard.write(data);
                     showStatus("✨ Đã Copy trọn bộ Ảnh & Lời nhắn!", "success");
                 } catch (e) {
-                    // 5. Nếu trình duyệt chặn (thường là mobile), hiện Modal thủ công
                     const imgData = canvas.toDataURL("image/png");
                     document.getElementById('modal-image-container').innerHTML = `<img src="${imgData}" class="max-w-full rounded-xl shadow-inner">`;
                     document.getElementById('modal-text-input').value = msg;
@@ -403,11 +400,24 @@
         function openGroup() {
             const link = document.getElementById('hidden_link').value;
             if (!link) { showStatus("Chưa có link nhóm!", "error"); return; }
-            if (link.includes('zalo.me/g/')) {
-                const id = link.match(/zalo\.me\/g\/([a-zA-Z0-9]+)/)?.[1];
-                if (id) window.location.href = `zalo://g/${id}`;
-                else window.open(link, '_blank');
-            } else window.open(link, '_blank');
+            
+            // LOGIC CƯỠNG CHẾ MỞ APP ZALO
+            if (link.toLowerCase().includes('zalo.me/g/')) {
+                const idMatch = link.match(/zalo\.me\/g\/([a-zA-Z0-9_-]+)/);
+                if (idMatch && idMatch[1]) {
+                    // Thử mở bằng URL scheme trước
+                    window.location.href = `zalo://g/${idMatch[1]}`;
+                    
+                    // Dự phòng nếu không mở được app sau 500ms thì mới mở web
+                    setTimeout(() => {
+                        window.open(link, '_blank');
+                    }, 500);
+                } else {
+                    window.open(link, '_blank');
+                }
+            } else {
+                window.open(link, '_blank');
+            }
         }
 
         window.onload = init;
