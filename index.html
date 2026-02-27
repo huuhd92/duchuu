@@ -3,529 +3,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVY Home - Bill Generator</title>
+    <title>SVY Home - Hóa Đơn Tiền Phòng</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7fa; color: #1e293b; display: flex; justify-content: center; padding: 40px 20px; min-height: 100vh; }
         
-        .bill-container { 
-            width: 480px; 
-            min-height: 853px;
-            background: white; 
-            padding: 45px; 
-            position: relative; 
-            overflow: hidden; 
+        /* Cố định kích thước bill để ảnh xuất ra luôn đẹp và nét */
+        .bill-wrapper {
+            width: 480px;
+            background: white;
+            border-radius: 36px;
+            padding: 40px;
+            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.1);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        /* Nút nổi bên phải */
+        .floating-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 28px;
             display: flex;
             flex-direction: column;
-        }
-        
-        .blue-accent { color: #1e40af; }
-        .bg-blue-accent { background-color: #1e40af; }
-        #bill-preview { box-shadow: none; border: 1px solid #e2e8f0; }
-        
-        #copy-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            justify-content: center; align-items: center; padding: 20px;
-        }
-        .modal-content {
-            background: white; padding: 30px; border-radius: 24px;
-            max-width: 550px; width: 100%; text-align: center; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            position: relative;
-            max-height: 95vh;
-            overflow-y: auto;
-        }
-        .close-x {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 24px;
-            font-weight: bold;
-            color: #64748b;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
             cursor: pointer;
-            transition: color 0.2s;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .close-x:hover { color: #0f172a; }
-        .step-number {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 24px; height: 24px; background: #2563eb; color: white;
-            border-radius: 50%; font-size: 12px; font-weight: bold; margin-right: 8px;
+        .floating-btn:active { transform: scale(0.95); }
+        .btn-blue { background: #4f46e5; background: linear-gradient(135deg, #4f46e5, #3b82f6); color: white; }
+        .btn-cyan { background: #0891b2; background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; }
+        .btn-white { background: white; color: #64748b; }
+
+        /* Modal / Toast */
+        #toast {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 14px 28px; border-radius: 100px;
+            font-weight: 700; font-size: 14px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 50;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 20px 10px; flex-direction: column; align-items: center; }
+            .bill-wrapper { width: 100%; max-width: 480px; padding: 30px 20px; border-radius: 28px; }
+            .action-panel { flex-direction: row; width: 100%; max-width: 480px; margin-top: 20px; justify-content: space-between; }
+            .floating-btn { height: 80px; flex: 1; border-radius: 20px; }
+            .floating-btn svg { width: 20px; height: 20px; margin-bottom: 4px; }
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div id="copy-modal" onclick="if(event.target === this) closeModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <span class="close-x" onclick="closeModal()">&times;</span>
-            <h3 class="text-2xl font-black mb-2 text-slate-800 tracking-tight">Gửi Hóa đơn thủ công</h3>
-            <p class="text-sm text-slate-500 mb-6 px-4">Do trình duyệt chặn copy tự động, vui lòng:</p>
-            
-            <div class="space-y-6 text-left">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <p class="text-sm font-bold text-slate-700 mb-2 flex items-center">
-                        <span class="step-number">1</span> Sao chép lời nhắn
-                    </p>
-                    <div class="flex gap-2">
-                        <input type="text" id="modal-text-input" readonly class="flex-1 bg-white border border-slate-200 rounded-lg p-2 text-xs text-slate-600 outline-none">
-                        <button onclick="copyModalText()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors">Copy chữ</button>
-                    </div>
+<body>
+
+    <div id="toast"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> <span id="toast-msg">Đã copy thành công!</span></div>
+
+    <div class="flex flex-col md:flex-row gap-6 items-start justify-center max-w-5xl w-full">
+        
+        <!-- ================= HÓA ĐƠN CHÍNH ================= -->
+        <div id="capture-area" class="bill-wrapper">
+            <!-- Header Bill -->
+            <div class="flex justify-between items-start mb-8">
+                <div>
+                    <h1 class="text-[32px] font-black text-slate-900 tracking-tighter leading-none" id="v_brand">SVY Home</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-1" id="v_addr">ĐANG TẢI DỮ LIỆU...</p>
                 </div>
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <p class="text-sm font-bold text-slate-700 mb-2 flex items-center">
-                        <span class="step-number">2</span> Sao chép hình ảnh
-                    </p>
-                    <p class="text-[10px] text-slate-400 mb-2 italic">Click chuột phải vào ảnh bên dưới -> Chọn "Sao chép hình ảnh" (Copy Image)</p>
-                    <div id="modal-image-container" class="border rounded-lg overflow-hidden flex justify-center bg-white shadow-inner"></div>
+                <div class="text-right">
+                    <h2 class="text-[32px] font-black text-blue-600 tracking-tighter leading-none" id="v_title">HÓA ĐƠN</h2>
+                    <p class="text-[11px] font-bold text-blue-600 uppercase tracking-wide mt-1" id="v_subtitle">CHI TIẾT TIỀN PHÒNG</p>
                 </div>
             </div>
-            <button onclick="closeModal()" class="mt-8 w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-black transition-colors uppercase tracking-widest text-sm">Xong & Đóng lại</button>
+
+            <!-- Info Grid -->
+            <div class="grid grid-cols-3 gap-4 mb-10">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" id="lbl_month">THÁNG</p>
+                    <p class="text-xl font-black text-slate-800" id="v_month">-</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" id="lbl_room">PHÒNG</p>
+                    <p class="text-xl font-black text-slate-800" id="v_room">-</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" id="lbl_tenant">KHÁCH THUÊ</p>
+                    <p class="text-base font-black text-slate-800 leading-tight" id="v_tenant">-</p>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <table class="w-full mb-8">
+                <thead>
+                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <th class="text-left pb-4 w-12" id="lbl_stt">STT</th>
+                        <th class="text-left pb-4" id="lbl_desc">MÔ TẢ</th>
+                        <th class="text-right pb-4" id="lbl_amt">THÀNH TIỀN</th>
+                    </tr>
+                </thead>
+                <tbody class="text-slate-800 font-semibold text-[15px]">
+                    <tr class="border-t border-slate-100">
+                        <td class="py-3.5 text-slate-400 font-bold">1</td>
+                        <td class="py-3.5" id="lbl_rent">Tiền thuê nhà</td>
+                        <td class="py-3.5 text-right font-black" id="v_rent_amt">0</td>
+                    </tr>
+                    <tr class="border-t border-slate-100">
+                        <td class="py-3.5 text-slate-400 font-bold">2</td>
+                        <td class="py-3.5" id="lbl_elec">Tiền điện</td>
+                        <td class="py-3.5 text-right font-black" id="v_elec_amt">0</td>
+                    </tr>
+                    <tr class="border-t border-slate-100">
+                        <td class="py-3.5 text-slate-400 font-bold">3</td>
+                        <td class="py-3.5" id="lbl_water">Tiền nước</td>
+                        <td class="py-3.5 text-right font-black" id="v_water_amt">0</td>
+                    </tr>
+                    <tr class="border-t border-slate-100">
+                        <td class="py-3.5 text-slate-400 font-bold">4</td>
+                        <td class="py-3.5" id="lbl_wifi">Tiền wifi</td>
+                        <td class="py-3.5 text-right font-black" id="v_wifi_amt">0</td>
+                    </tr>
+                    <tr class="border-t border-slate-100">
+                        <td class="py-3.5 text-slate-400 font-bold">5</td>
+                        <td class="py-3.5" id="lbl_serv">Phí dịch vụ</td>
+                        <td class="py-3.5 text-right font-black" id="v_serv_amt">0</td>
+                    </tr>
+                    <tr class="border-t border-b border-slate-100">
+                        <td class="py-3.5 text-slate-400 font-bold">6</td>
+                        <td class="py-3.5" id="lbl_other">Mục khác</td>
+                        <td class="py-3.5 text-right font-black" id="v_other_amt">0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="py-6 text-blue-700 font-black text-lg tracking-tight" id="lbl_total">TỔNG CỘNG</td>
+                        <td class="py-6 text-right text-blue-700 font-black text-[26px] tracking-tighter" id="v_total">0</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Electricity Details -->
+            <div class="bg-[#f8fafc] border border-slate-100 rounded-2xl p-4 flex justify-between text-center items-center mb-10">
+                <div>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1" id="lbl_e_old">ĐIỆN CŨ</p>
+                    <p class="text-sm font-black text-slate-700" id="v_e_old">0</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1" id="lbl_e_new">ĐIỆN MỚI</p>
+                    <p class="text-sm font-black text-slate-700" id="v_e_new">0</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1" id="lbl_e_used">SỬ DỤNG</p>
+                    <p class="text-sm font-black text-blue-600" id="v_e_used">0</p>
+                </div>
+                <div class="border-l border-slate-200 pl-4 text-right">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1" id="lbl_e_sub">THÀNH TIỀN</p>
+                    <p class="text-sm font-black text-blue-600" id="v_e_subtotal">0</p>
+                </div>
+            </div>
+
+            <!-- Footer: Bank + QR -->
+            <div class="flex gap-5">
+                <div class="flex-1 bg-[#f4f7fb] rounded-2xl p-5 border border-slate-100">
+                    <p class="text-[10px] font-bold text-blue-800 uppercase mb-2 tracking-wide" id="lbl_pay">THÔNG TIN CHUYỂN KHOẢN</p>
+                    <p class="text-sm font-bold text-slate-700" id="v_bank">-</p>
+                    <p class="text-[22px] font-black text-blue-700 tracking-tighter mt-1 mb-1" id="v_acc">-</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest" id="v_owner">-</p>
+                    
+                    <div class="mt-4 pt-4 border-t border-slate-200/60">
+                        <p class="text-[9px] font-bold text-slate-500 uppercase mb-1" id="lbl_code">NỘI DUNG CK:</p>
+                        <p class="text-lg font-black text-slate-900 tracking-widest" id="v_code">-</p>
+                        <p class="text-[9px] text-red-500 font-bold italic mt-1.5" id="lbl_note">* Vui lòng ghi chính xác nội dung ck</p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col items-center justify-end">
+                    <div class="bg-white p-2 border border-slate-100 rounded-[20px] shadow-sm">
+                        <img id="v_qr" src="" crossorigin="anonymous" class="w-[120px] h-[120px] object-contain rounded-xl">
+                    </div>
+                    <p class="text-[8px] font-bold text-slate-400 tracking-widest uppercase mt-2">VIETQR • NAPAS247</p>
+                </div>
+            </div>
         </div>
+
+        <!-- ================= NÚT ACTION NỔI (BÊN PHẢI) ================= -->
+        <div class="action-panel flex flex-col gap-4 gap-y-4">
+            <button onclick="captureAndCopy()" class="floating-btn btn-blue">
+                <svg class="mb-2" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                COPY <span class="hidden md:inline">&<br>GỬI</span> BILL
+            </button>
+            <button onclick="openApp()" class="floating-btn btn-cyan">
+                <svg class="mb-2" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                MỞ NHÓM<br>ZALO
+            </button>
+            <button onclick="window.print()" class="floating-btn btn-white hidden md:flex">
+                <svg class="mb-2" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline stroke-linecap="round" stroke-linejoin="round" points="6 9 6 2 18 2 18 9"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                IN BILL
+            </button>
+        </div>
+
     </div>
 
-    <div class="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-2 gap-10">
-        <!-- CỘT TRÁI: DỮ LIỆU TỪ LARK BASE -->
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 h-fit">
-            <h2 class="text-2xl font-black flex items-center gap-3 text-slate-800 uppercase tracking-tight mb-2">
-                <span class="bg-blue-600 text-white p-2 rounded-xl text-sm shadow-lg">SVY</span>
-                Quản lý Hóa đơn
-            </h2>
-            <p class="text-xs text-slate-400 mb-8 font-medium italic"><i class="fa-solid fa-link"></i> Dữ liệu được đồng bộ từ Lark Base</p>
+    <!-- Modal Fallback cho trình duyệt chặn Copy -->
+    <div id="fallback-modal" class="fixed inset-0 bg-black/80 hidden z-50 justify-center items-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full text-center relative">
+            <h3 class="text-xl font-black text-slate-800 mb-2">Gửi hóa đơn thủ công</h3>
+            <p class="text-xs text-slate-500 font-medium mb-6">Trình duyệt không hỗ trợ copy tự động</p>
             
-            <div class="grid grid-cols-2 gap-5">
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Căn hộ / Cơ sở</label>
-                    <select id="in_building" onchange="updateBill()" class="block w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-3 border outline-none bg-slate-50 font-medium cursor-pointer">
-                        <option value="38HD" selected>SVY Home - 38HD (VN)</option>
-                        <option value="46HD">SVY Home - 46HD (VN)</option>
-                        <option value="128TL">SVY Home - 128TL (VN)</option>
-                        <option value="07KMD10">SVY Apartment - 07KMD10 (EN)</option>
-                    </select>
-                </div>
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tháng / Month</label>
-                    <select id="in_month" onchange="updateBill()" class="block w-full rounded-xl border-slate-200 shadow-sm text-sm p-3 border outline-none bg-slate-50 font-medium cursor-pointer">
-                        <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option>
-                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-                        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-                    </select>
-                </div>
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Phòng / Room</label>
-                    <input type="text" id="in_room" value="101" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-                
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tên khách / Tenant</label>
-                    <input type="text" id="in_tenant" value="Trang" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Link nhóm (Zalo/Whatsapp)</label>
-                    <input type="text" id="in_group_link" value="https://zalo.me/g/rxalqt817" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-
-                <div class="col-span-2"><hr class="my-2 border-slate-100"></div>
-
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Số điện cũ</label>
-                    <input type="number" id="in_elec_old" value="5009" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Số điện mới</label>
-                    <input type="number" id="in_elec_new" value="5105" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-                
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tiền thuê / Rent</label>
-                    <input type="number" id="in_rent" value="2100000" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tiền điện (Lark)</label>
-                    <input type="number" id="in_elec_amount" value="384000" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Nước / Water</label>
-                    <input type="number" id="in_water" value="50000" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Wifi</label>
-                    <input type="number" id="in_wifi" value="30000" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Dịch vụ / Service</label>
-                    <input type="number" id="in_service_fee" value="0" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-                <div class="col-span-1">
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Khác / Others (+/-)</label>
-                    <input type="number" id="in_other" value="0" readonly class="block w-full rounded-xl border-transparent shadow-none text-sm p-3 outline-none bg-slate-100 text-slate-600 font-bold cursor-not-allowed">
-                </div>
-            </div>
-
-            <div class="mt-10 grid grid-cols-2 gap-4">
-                <button onclick="copyBillToClipboard()" class="col-span-1 bg-blue-600 text-white font-black uppercase tracking-wider py-4 rounded-2xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-xl shadow-blue-200 active:scale-95 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                    Copy
-                </button>
-                <button id="btn_open_group" onclick="openGroup()" class="col-span-1 bg-[#0068ff] text-white font-black uppercase tracking-wider py-4 rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-xl active:scale-95 text-sm">
-                    <span id="btn_icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12c0-5.523-4.477-10-10-10S4 6.477 4 12c0 1.543.348 3.003.968 4.31l-1.373 4.116a1.25 1.25 0 0 0 1.579 1.579l4.116-1.373A9.957 9.957 0 0 0 14 22c5.523 0 10-4.477 10-10z"/></svg>
-                    </span>
-                    <span id="btn_text">Mở app</span>
-                </button>
-            </div>
+            <textarea id="fallback-text" readonly class="w-full h-20 p-3 bg-slate-50 border rounded-xl text-xs font-medium text-slate-700 mb-4 outline-none resize-none"></textarea>
             
-            <div id="status-container" class="mt-6 hidden">
-                <p id="status-msg" class="text-center text-sm font-bold p-4 rounded-2xl border"></p>
-            </div>
-            <textarea id="in_message" class="hidden"></textarea>
-        </div>
-
-        <!-- CỘT PHẢI: PREVIEW HÓA ĐƠN -->
-        <div class="flex justify-center items-start">
-            <div id="bill-preview" class="bill-container rounded-[2.5rem] shadow-2xl">
-                <!-- Phần Đầu -->
-                <div class="flex-1 flex flex-col">
-                    <div class="flex justify-between items-start mb-10">
-                        <div>
-                            <h1 id="view_brand_name" class="text-3xl font-black text-slate-900 tracking-tight leading-none mb-1">SVY Home</h1>
-                            <p id="view_address" class="text-[10px] text-slate-400 font-medium uppercase mt-2">38 Hoang Dieu, Da Nang</p>
-                        </div>
-                        <div class="text-right">
-                            <h2 class="text-3xl font-black text-blue-600 tracking-tighter leading-none" id="lbl_main_title">HÓA ĐƠN</h2>
-                            <h2 class="text-[15px] font-bold text-blue-600 tracking-tight uppercase mt-1" id="lbl_sub_title">TIỀN PHÒNG</h2>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2 mb-10">
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5" id="lbl_month">Tháng</p>
-                            <p class="text-xl font-bold text-slate-800 tracking-tight" id="view_month">3 / 2026</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5" id="lbl_room">Phòng</p>
-                            <p class="text-xl font-bold text-slate-800 tracking-tight" id="view_room">101</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5" id="lbl_tenant">Người thuê</p>
-                            <p class="text-xl font-bold text-slate-800 tracking-tight" id="view_tenant">Trang</p>
-                        </div>
-                    </div>
-
-                    <table class="w-full text-sm mb-auto">
-                        <thead>
-                            <tr class="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                <th class="pb-3 text-left w-12" id="lbl_stt">STT</th>
-                                <th class="pb-3 text-left" id="lbl_desc">Mô tả</th>
-                                <th class="pb-3 text-right" id="lbl_amount">Thành tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-slate-700">
-                            <tr class="border-b border-slate-50">
-                                <td class="py-3 font-bold text-slate-400">1</td>
-                                <td class="py-3 font-semibold text-[15px]" id="lbl_rent">Tiền thuê nhà</td>
-                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_rent">0</td>
-                            </tr>
-                            <tr class="border-b border-slate-50">
-                                <td class="py-3 font-bold text-slate-400">2</td>
-                                <td class="py-3 font-semibold text-[15px]" id="lbl_elec">Tiền điện</td>
-                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_elec_total">0</td>
-                            </tr>
-                            <tr class="border-b border-slate-50">
-                                <td class="py-3 font-bold text-slate-400">3</td>
-                                <td class="py-3 font-semibold text-[15px]" id="lbl_water">Tiền nước</td>
-                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_water">0</td>
-                            </tr>
-                            <tr class="border-b border-slate-50">
-                                <td class="py-3 font-bold text-slate-400">4</td>
-                                <td class="py-3 font-semibold text-[15px]" id="lbl_wifi">Tiền wifi</td>
-                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_wifi">0</td>
-                            </tr>
-                            <tr class="border-b border-slate-50">
-                                <td class="py-3 font-bold text-slate-400">5</td>
-                                <td class="py-3 font-semibold text-[15px]" id="lbl_service_fee">Phí dịch vụ</td>
-                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_service_fee">0</td>
-                            </tr>
-                            <tr class="border-b border-slate-50">
-                                <td class="py-3 font-bold text-slate-400">6</td>
-                                <td class="py-3 font-semibold text-[15px]" id="lbl_other">Mục khác</td>
-                                <td class="py-3 text-right font-black text-slate-900 text-[15px]" id="view_other">0</td>
-                            </tr>
-                            <tr class="bg-blue-50/40">
-                                <td colspan="2" class="py-4 px-4 text-blue-800 font-black text-[17px] uppercase tracking-tighter" id="lbl_total">Tổng cộng</td>
-                                <td class="py-4 px-4 text-right text-blue-800 font-black text-[22px] tracking-tighter" id="view_total">0</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- CHI TIẾT ĐIỆN -->
-                    <div class="mt-6 mb-8 flex justify-center">
-                        <div class="bg-slate-50/80 rounded-2xl border border-slate-100 p-5 w-full flex justify-between text-center items-center">
-                            <div>
-                                <p class="text-[9px] font-black text-slate-400 uppercase mb-1" id="lbl_elec_old">Điện cũ</p>
-                                <p class="text-[13px] font-bold text-slate-700" id="view_elec_old">0</p>
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-black text-slate-400 uppercase mb-1" id="lbl_elec_new">Điện mới</p>
-                                <p class="text-[13px] font-bold text-slate-700" id="view_elec_new">0</p>
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-black text-slate-400 uppercase mb-1" id="lbl_elec_used">Sử dụng</p>
-                                <p class="text-[14px] font-bold text-blue-600" id="view_elec_used">0</p>
-                            </div>
-                            <div class="border-l-2 border-slate-200 pl-4 ml-1">
-                                <p class="text-[9px] font-black text-blue-800 uppercase mb-1" id="lbl_elec_subtotal">Thành tiền</p>
-                                <p class="text-[14px] font-black text-blue-700" id="view_elec_cost_detail">0</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KHU VỰC ĐÁY: CHUYỂN KHOẢN & QR -->
-                <div class="mt-auto flex gap-5 items-end justify-between">
-                    <div class="flex-1">
-                        <div class="p-5 bg-blue-50/50 rounded-2xl border border-blue-100/30">
-                            <p class="text-[10px] font-black text-blue-800 uppercase mb-2" id="lbl_pay_info">Thông tin chuyển khoản</p>
-                            <div class="space-y-1">
-                                <p class="text-[13px] text-slate-600 font-bold" id="view_bank_name">VIB Bank</p>
-                                <p class="text-[17px] text-blue-700 font-black tracking-tight" id="view_bank_acc">426704060074888</p>
-                                <p class="text-[11px] text-slate-500 font-bold uppercase" id="view_bank_owner">TRAN THI YEN PHUONG</p>
-                            </div>
-                            
-                            <div class="mt-3.5 pt-3.5 border-t border-blue-100/50">
-                                <p class="text-[9px] text-slate-500 font-bold uppercase mb-1" id="lbl_pay_code">Mã thanh toán (Nội dung CK):</p>
-                                <p class="text-[16px] text-slate-800 font-black tracking-widest" id="view_payment_code">-</p>
-                                <p class="text-[9px] text-red-500 mt-1.5 font-semibold italic leading-tight" id="lbl_pay_reminder">* Vui lòng ghi chính xác nội dung ck</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="p-2 border-2 border-slate-100 bg-white rounded-2xl shadow-lg">
-                            <img id="qr_img" crossorigin="anonymous" src="" alt="QR" class="w-[130px] h-[130px] object-contain">
-                        </div>
-                        <p class="text-[9px] mt-2.5 text-slate-400 font-black tracking-widest uppercase text-center">VietQR • Napas247</p>
-                    </div>
-                </div>
-            </div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Nhấn giữ (hoặc click chuột phải) vào ảnh để Copy</p>
+            <div id="fallback-img" class="border-2 border-slate-100 rounded-2xl overflow-hidden mb-6 flex justify-center bg-slate-50 p-2"></div>
+            
+            <button onclick="document.getElementById('fallback-modal').style.display='none'" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl">ĐÓNG</button>
         </div>
     </div>
 
     <script>
-        const langs = {
+        // Cấu hình các cơ sở
+        const cfg = {
+            "38HD": { name: "SVY Home", addr: "38 HOÀNG DIỆU, ĐÀ NẴNG", bank: "VIB", acc: "426704060074888", owner: "TRAN THI YEN PHUONG", isEn: false },
+            "46HD": { name: "SVY Home", addr: "46 HOÀNG DIỆU, ĐÀ NẴNG", bank: "VIB", acc: "426704060074888", owner: "TRAN THI YEN PHUONG", isEn: false },
+            "128TL": { name: "SVY Home", addr: "128 THĂNG LONG, ĐÀ NẴNG", bank: "VIB", acc: "426704060074888", owner: "TRAN THI YEN PHUONG", isEn: false },
+            "07KMD10": { name: "SVY Apartment", addr: "07 KHUÊ MỸ ĐÔNG 10, ĐÀ NẴNG", bank: "VCB", acc: "1012345678", owner: "YOUR ACCOUNT NAME", isEn: true }
+        };
+
+        const t = {
             vi: {
-                main: "HÓA ĐƠN", sub: "Chi Tiết Tiền Phòng", month: "Tháng", room: "Phòng", tenant: "Khách thuê",
-                stt: "STT", desc: "Mô tả", amount: "Thành tiền", rent: "Tiền thuê nhà", elec: "Tiền điện",
-                water: "Tiền nước", wifi: "Tiền wifi", serviceFee: "Phí dịch vụ", other: "Mục khác", total: "Tổng cộng", payInfo: "Thông tin chuyển khoản",
-                elecOld: "Điện cũ", elecNew: "Điện mới", elecUsed: "Sử dụng", elecPrice: "Đơn giá", elecSub: "Thành tiền",
-                payCode: "Mã thanh toán (Nội dung CK):",
-                payReminder: "* Vui lòng ghi chính xác nội dung ck",
-                defaultMsg: (room, month, year, code) => `Chào bạn, SVY Home gửi hóa đơn tiền phòng ${room} tháng ${month}/${year}.\nKhi chuyển khoản thủ công, bạn nhớ ghi Nội dung CK là: ${code} nhé.`
+                main: "HÓA ĐƠN", sub: "CHI TIẾT TIỀN PHÒNG", month: "THÁNG", room: "PHÒNG", tenant: "KHÁCH THUÊ",
+                stt: "STT", desc: "MÔ TẢ", amt: "THÀNH TIỀN", rent: "Tiền thuê nhà", elec: "Tiền điện", water: "Tiền nước",
+                wifi: "Tiền wifi", serv: "Phí dịch vụ", other: "Mục khác", total: "TỔNG CỘNG",
+                eOld: "ĐIỆN CŨ", eNew: "ĐIỆN MỚI", eUsed: "SỬ DỤNG", eSub: "THÀNH TIỀN",
+                pay: "THÔNG TIN CHUYỂN KHOẢN", code: "NỘI DUNG CK:", note: "* Vui lòng ghi chính xác nội dung ck"
             },
             en: {
-                main: "INVOICE", sub: "Rental Summary", month: "Month", room: "Room", tenant: "Tenant",
-                stt: "#", desc: "Description", amount: "Amount", rent: "Monthly Rent", elec: "Electricity",
-                water: "Water Service", wifi: "Wifi Service", serviceFee: "Service Fee", other: "Other charges", total: "Total Amount", payInfo: "Bank Transfer Details",
-                elecOld: "Old Meter", elecNew: "New Meter", elecUsed: "Used", elecPrice: "Price", elecSub: "Subtotal",
-                payCode: "Payment Code (Transfer Remark):",
-                payReminder: "* Please enter the exact Payment Code",
-                defaultMsg: (room, month, year, code) => `Hi, SVY Apartment is sending the rental invoice for Room ${room} (Month ${month}/${year}).\nIf transferring manually, please use ${code} as the transfer remark.`
+                main: "INVOICE", sub: "RENTAL DETAILS", month: "MONTH", room: "ROOM", tenant: "TENANT",
+                stt: "NO.", desc: "DESCRIPTION", amt: "AMOUNT", rent: "Room Rent", elec: "Electricity", water: "Water",
+                wifi: "Wifi", serv: "Service Fee", other: "Others", total: "TOTAL",
+                eOld: "OLD METER", eNew: "NEW METER", eUsed: "USED", eSub: "SUBTOTAL",
+                pay: "BANK TRANSFER INFO", code: "TRANSFER REMARK:", note: "* Please enter exact remark"
             }
         };
 
-        const accountMapping = {
-            "38HD": { maCoSo: "38HD", address: "38 Hoàng Diệu, Đà Nẵng", bankId: "VIB", bankName: "VIB Bank", acc: "426704060074888", owner: "TRAN THI YEN PHUONG" },
-            "46HD": { maCoSo: "46HD", address: "46 Hoàng Diệu, Đà Nẵng", bankId: "VIB", bankName: "VIB Bank", acc: "426704060074888", owner: "TRAN THI YEN PHUONG" },
-            "128TL": { maCoSo: "128TL", address: "128 Thăng Long, Đà Nẵng", bankId: "VIB", bankName: "VIB Bank", acc: "426704060074888", owner: "TRAN THI YEN PHUONG" },
-            "07KMD10": { maCoSo: "07KMD10", address: "07 Khuê Mỹ Đông 10, Đà Nẵng", bankId: "VCB", bankName: "Vietcombank", acc: "1012345678", owner: "ACCOUNT B" }
-        };
+        // Biến lưu trữ link nhóm Zalo
+        let groupLink = "";
+        let globalRoom = "";
+        let globalMonth = "";
+        let globalCode = "";
+        let globalTotal = "0";
 
-        function formatMoney(num) { 
-            return new Intl.NumberFormat('vi-VN').format(num).replace(/,/g, '.'); 
-        }
-        
-        function closeModal() { document.getElementById('copy-modal').style.display = 'none'; }
-
-        function showStatus(text, type = 'info') {
-            const container = document.getElementById('status-container');
-            const msg = document.getElementById('status-msg');
-            if (!container || !msg) return;
-            container.classList.remove('hidden');
-            msg.innerText = text;
-            msg.className = `text-center text-sm font-bold p-4 rounded-2xl border ${
-                type === 'error' ? 'border-red-200 bg-red-50 text-red-600' : 
-                type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-blue-200 bg-blue-50 text-blue-600'
-            }`;
-            if (type !== 'error') setTimeout(() => container.classList.add('hidden'), 5000);
+        function fmt(num) {
+            return new Intl.NumberFormat('vi-VN').format(num || 0).replace(/,/g, '.');
         }
 
-        function loadDataFromURL() {
-            const params = new URLSearchParams(window.location.search);
-            const mapping = {
-                'building': 'in_building', 'month': 'in_month', 'room': 'in_room',
-                'tenant': 'in_tenant', 'link': 'in_group_link', 'e_old': 'in_elec_old',
-                'e_new': 'in_elec_new', 'rent': 'in_rent', 'e_amount': 'in_elec_amount',
-                'water': 'in_water', 'wifi': 'in_wifi', 's_fee': 'in_service_fee', 'other': 'in_other'
-            };
-            for (const [key, id] of Object.entries(mapping)) {
-                if (params.has(key)) {
-                    const el = document.getElementById(id);
-                    if (el) el.value = decodeURIComponent(params.get(key));
-                }
-            }
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.style.background = isError ? '#ef4444' : '#1e293b';
+            toast.style.top = '30px';
+            setTimeout(() => { toast.style.top = '-100px'; }, 3000);
         }
 
-        function updateBill() {
-            const buildingEl = document.getElementById('in_building');
-            if (!buildingEl) return;
+        // Tự động load dữ liệu từ URL truyền vào
+        function loadBillData() {
+            const p = new URLSearchParams(window.location.search);
             
-            const building = buildingEl.value;
-            const month = document.getElementById('in_month').value;
+            const bld = p.get('building') || '38HD';
+            const mon = p.get('month') || '-';
+            const rom = p.get('room') || '-';
+            const ten = p.get('tenant') || '-';
+            groupLink = decodeURIComponent(p.get('link') || '');
+            
+            const eO = parseInt(p.get('e_old')) || 0;
+            const eN = parseInt(p.get('e_new')) || 0;
+            const eAmt = parseInt(p.get('e_amount')) || 0;
+            const eU = Math.max(0, eN - eO);
+            
+            const rnt = parseInt(p.get('rent')) || 0;
+            const wat = parseInt(p.get('water')) || 0;
+            const wif = parseInt(p.get('wifi')) || 0;
+            const srv = parseInt(p.get('s_fee')) || 0;
+            const oth = parseInt(p.get('other')) || 0;
+            
+            const total = rnt + eAmt + wat + wif + srv + oth;
+            
             const year = new Date().getFullYear();
-            const room = document.getElementById('in_room').value;
-            const tenant = document.getElementById('in_tenant').value;
+            const code = `${bld}P${rom}T${mon}Y${year}`;
+
+            // Lưu biến toàn cục để dùng khi nhắn tin
+            globalRoom = rom;
+            globalMonth = mon;
+            globalCode = code;
+            globalTotal = fmt(total);
+
+            // Cấu hình ngôn ngữ & thông tin
+            const c = cfg[bld] || cfg["38HD"];
+            const lang = c.isEn ? t.en : t.vi;
+
+            document.getElementById('v_brand').innerText = c.name;
+            document.getElementById('v_addr').innerText = c.addr;
+            document.getElementById('v_bank').innerText = c.bank + " Bank";
+            document.getElementById('v_acc').innerText = c.acc;
+            document.getElementById('v_owner').innerText = c.owner;
+            document.getElementById('v_code').innerText = code;
             
-            const eOld = parseInt(document.getElementById('in_elec_old').value) || 0;
-            const eNew = parseInt(document.getElementById('in_elec_new').value) || 0;
-            const eUsed = Math.max(0, eNew - eOld);
-            
-            // Ưu tiên lấy e_amount từ Lark, nếu không có mới tự tính
-            const params = new URLSearchParams(window.location.search);
-            let eTotal = parseInt(document.getElementById('in_elec_amount').value) || 0;
-            if (eTotal === 0 && eUsed > 0) {
-                eTotal = eUsed * 4000; // Giá mặc định nếu rỗng
+            for(let k in lang) {
+                const el = document.getElementById('lbl_' + k);
+                if(el) el.innerText = lang[k];
             }
+            document.getElementById('v_title').innerText = lang.main;
+            document.getElementById('v_subtitle').innerText = lang.sub;
 
-            const rent = parseInt(document.getElementById('in_rent').value) || 0;
-            const water = parseInt(document.getElementById('in_water').value) || 0;
-            const wifi = parseInt(document.getElementById('in_wifi').value) || 0;
-            const serviceFee = parseInt(document.getElementById('in_service_fee').value) || 0;
-            const other = parseInt(document.getElementById('in_other').value) || 0;
-            
-            const total = rent + eTotal + water + wifi + serviceFee + other;
+            // Đổ dữ liệu vào giao diện
+            document.getElementById('v_month').innerText = `${mon} / ${year}`;
+            document.getElementById('v_room').innerText = rom;
+            document.getElementById('v_tenant').innerText = ten;
 
-            const isEnglish = ["07KMD10"].some(b => building.includes(b));
-            const l = isEnglish ? langs.en : langs.vi;
+            document.getElementById('v_rent_amt').innerText = fmt(rnt);
+            document.getElementById('v_elec_amt').innerText = fmt(eAmt);
+            document.getElementById('v_water_amt').innerText = fmt(wat);
+            document.getElementById('v_wifi_amt').innerText = fmt(wif);
+            document.getElementById('v_serv_amt').innerText = fmt(srv);
+            document.getElementById('v_other_amt').innerText = fmt(oth);
+            document.getElementById('v_total').innerText = globalTotal;
 
-            const acc = accountMapping[building] || accountMapping["38HD"];
-            const paymentCode = `${acc.maCoSo}P${room}T${month}Y${year}`;
+            document.getElementById('v_e_old').innerText = fmt(eO);
+            document.getElementById('v_e_new').innerText = fmt(eN);
+            document.getElementById('v_e_used').innerText = fmt(eU);
+            document.getElementById('v_e_subtotal').innerText = fmt(eAmt);
 
-            const safeUpdate = (id, text) => {
-                const el = document.getElementById(id);
-                if (el) el.innerText = text;
-            };
-
-            const brandName = isEnglish ? "SVY Apartment" : "SVY Home";
-            safeUpdate('view_brand_name', brandName);
-            safeUpdate('view_address', acc.address);
-            safeUpdate('lbl_main_title', l.main);
-            safeUpdate('lbl_sub_title', l.sub);
-            safeUpdate('lbl_month', l.month);
-            safeUpdate('lbl_room', l.room);
-            safeUpdate('lbl_tenant', l.tenant);
-            safeUpdate('lbl_rent', l.rent);
-            safeUpdate('lbl_elec', l.elec);
-            safeUpdate('lbl_water', l.water);
-            safeUpdate('lbl_wifi', l.wifi);
-            safeUpdate('lbl_service_fee', l.serviceFee);
-            safeUpdate('lbl_other', l.other);
-            safeUpdate('lbl_total', l.total);
-            safeUpdate('lbl_pay_info', l.payInfo);
-            safeUpdate('lbl_elec_old', l.elecOld);
-            safeUpdate('lbl_elec_new', l.elecNew);
-            safeUpdate('lbl_elec_used', l.elecUsed);
-            safeUpdate('lbl_elec_subtotal', l.elecSub);
-            safeUpdate('lbl_pay_code', l.payCode);
-            safeUpdate('lbl_pay_reminder', l.payReminder);
-
-            const msgInput = document.getElementById('in_message');
-            if (msgInput) msgInput.value = l.defaultMsg(room, month, year, paymentCode);
-
-            safeUpdate('view_month', `${month} / ${year}`);
-            safeUpdate('view_room', room);
-            safeUpdate('view_tenant', tenant);
-            safeUpdate('view_rent', formatMoney(rent));
-            safeUpdate('view_elec_total', formatMoney(eTotal));
-            safeUpdate('view_water', formatMoney(water));
-            safeUpdate('view_wifi', formatMoney(wifi));
-            safeUpdate('view_service_fee', formatMoney(serviceFee));
-            safeUpdate('view_other', formatMoney(other));
-            safeUpdate('view_total', formatMoney(total));
-            safeUpdate('view_elec_old', formatMoney(eOld));
-            safeUpdate('view_elec_new', formatMoney(eNew));
-            safeUpdate('view_elec_used', formatMoney(eUsed));
-            safeUpdate('view_elec_cost_detail', formatMoney(eTotal));
-            
-            safeUpdate('view_bank_name', acc.bankName);
-            safeUpdate('view_bank_acc', acc.acc);
-            safeUpdate('view_bank_owner', acc.owner);
-            safeUpdate('view_payment_code', paymentCode);
-
-            const addInfo = encodeURIComponent(paymentCode);
-            const accountName = encodeURIComponent(acc.owner);
-            const qrUrl = `https://img.vietqr.io/image/${acc.bankId}-${acc.acc}-qr_only.png?amount=${total}&addInfo=${addInfo}&accountName=${accountName}`;
-            
-            const qrImg = document.getElementById('qr_img');
-            if (qrImg) qrImg.src = qrUrl;
+            // Tạo mã QR
+            const qrUrl = `https://img.vietqr.io/image/${c.bank}-${c.acc}-qr_only.png?amount=${total}&addInfo=${encodeURIComponent(code)}&accountName=${encodeURIComponent(c.owner)}`;
+            document.getElementById('v_qr').src = qrUrl;
         }
 
-        async function copyBillToClipboard() {
-            showStatus("Đang chuẩn bị ảnh...");
-            const element = document.getElementById('bill-preview');
-            const msg = document.getElementById('in_message').value;
+        // Mở App Zalo
+        function openApp() {
+            if(groupLink) {
+                window.open(groupLink, '_blank');
+            } else {
+                showToast("Phòng này chưa có link Zalo!", true);
+            }
+        }
 
+        // Chụp ảnh và Copy toàn bộ
+        async function captureAndCopy() {
+            showToast("Đang xử lý ảnh...");
+            const node = document.getElementById('capture-area');
+            const msg = `Chào bạn, SVY gửi hóa đơn phòng ${globalRoom} tháng ${globalMonth}.\nTổng tiền: ${globalTotal}đ\nNội dung CK: ${globalCode}`;
+            
             try {
-                const canvas = await html2canvas(element, { scale: 3, useCORS: true, backgroundColor: "#ffffff" });
-                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                
-                const imgUrl = canvas.toDataURL("image/png");
-                const mImgC = document.getElementById('modal-image-container');
-                if (mImgC) mImgC.innerHTML = `<img src="${imgUrl}" class="max-w-full h-auto cursor-pointer border rounded-lg">`;
-                const mTxtI = document.getElementById('modal-text-input');
-                if (mTxtI) mTxtI.value = msg;
-
-                try {
-                    const data = [new ClipboardItem({ "image/png": blob, "text/plain": new Blob([msg], { type: "text/plain" }) })];
-                    await navigator.clipboard.write(data);
-                    showStatus("✨ Đã Copy Ảnh & Lời nhắn! Hãy dán (Ctrl+V) vào Chat.", "success");
-                } catch (err) {
-                    const modal = document.getElementById('copy-modal');
-                    if (modal) modal.style.display = 'flex';
-                    copyModalText(); 
-                    showStatus("Đã copy lời nhắn. Vui lòng copy ảnh thủ công.", "info");
-                }
-            } catch (err) { 
-                showStatus("❌ Lỗi chụp ảnh!", "error"); 
+                const canvas = await html2canvas(node, { scale: 3, useCORS: true, backgroundColor: "#ffffff" });
+                canvas.toBlob(async (blob) => {
+                    try {
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ 
+                                "image/png": blob, 
+                                "text/plain": new Blob([msg], { type: "text/plain" }) 
+                            })
+                        ]);
+                        showToast("✨ Đã copy Ảnh & Lời nhắn!");
+                    } catch (e) {
+                        // Fallback cho trình duyệt chặn
+                        document.getElementById('fallback-text').value = msg;
+                        document.getElementById('fallback-img').innerHTML = `<img src="${canvas.toDataURL()}" class="max-w-[200px] h-auto rounded-xl shadow-sm mx-auto block">`;
+                        document.getElementById('fallback-modal').style.display = 'flex';
+                    }
+                }, 'image/png');
+            } catch (err) {
+                showToast("❌ Lỗi tạo ảnh", true);
             }
         }
 
-        function copyModalText() {
-            const copyText = document.getElementById("modal-text-input");
-            if (!copyText) return;
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            document.execCommand("copy");
-            showStatus("✅ Đã copy lời nhắn!", "success");
-        }
-
-        function openGroup() {
-            const linkInput = document.getElementById('in_group_link');
-            if (!linkInput) return;
-            const link = linkInput.value;
-            if (!link) { showStatus("⚠️ Vui lòng nhập link nhóm trước.", "error"); return; }
-            window.open(link, '_blank');
-        }
-
-        window.onload = () => { 
-            loadDataFromURL();
-            updateBill(); 
-        };
+        // Chạy ngay khi mở web
+        window.onload = loadBillData;
     </script>
 </body>
 </html>
