@@ -196,7 +196,7 @@
             </button>
             <button onclick="openApp()" class="floating-btn btn-cyan">
                 <svg class="mb-2" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                MỞ NHÓM<br>ZALO
+                MỞ NHÓM
             </button>
             <button onclick="window.print()" class="floating-btn btn-white hidden md:flex">
                 <svg class="mb-2" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline stroke-linecap="round" stroke-linejoin="round" points="6 9 6 2 18 2 18 9"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -278,7 +278,9 @@
             
             const eO = parseInt(p.get('e_old')) || 0;
             const eN = parseInt(p.get('e_new')) || 0;
-            const eAmt = parseInt(p.get('e_amount')) || 0;
+            
+            // Cập nhật: Đọc nhiều định dạng biến tiền điện khác nhau (phòng trường hợp URL gửi sai tên)
+            const eAmt = parseInt(p.get('e_amount')) || parseInt(p.get('e_bill')) || parseInt(p.get('electricity_bill')) || 0;
             const eU = Math.max(0, eN - eO);
             
             const rnt = parseInt(p.get('rent')) || 0;
@@ -339,13 +341,27 @@
             document.getElementById('v_qr').src = qrUrl;
         }
 
-        // Mở App Zalo
+        // Mở App Zalo/WhatsApp (Ép mở Website)
         function openApp() {
-            if(groupLink) {
-                window.open(groupLink, '_blank');
-            } else {
-                showToast("Phòng này chưa có link Zalo!", true);
+            if(!groupLink) {
+                showToast("Phòng này chưa có link nhóm!", true);
+                return;
             }
+
+            let finalLink = groupLink;
+
+            // Chuyển link WhatsApp thành bản Web
+            if (groupLink.includes('chat.whatsapp.com/')) {
+                const code = groupLink.split('chat.whatsapp.com/')[1];
+                finalLink = `https://web.whatsapp.com/accept?code=${code}`;
+            } 
+            // Giữ nguyên link Zalo (Mặc định Zalo PC sẽ mở Landing Page Web của Zalo)
+            else if (groupLink.includes('zalo.me/g/')) {
+                finalLink = groupLink;
+            }
+
+            // Mở link trong tab mới
+            window.open(finalLink, '_blank');
         }
 
         // Chụp ảnh và Copy toàn bộ
