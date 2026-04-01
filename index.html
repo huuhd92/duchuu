@@ -10,7 +10,6 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f4f7fa; color: #1e293b; display: flex; justify-content: center; padding: 40px 20px; min-height: 100vh; }
         
-        /* Cố định kích thước bill để ảnh xuất ra luôn đẹp và nét */
         .bill-wrapper {
             width: 480px;
             background: white;
@@ -21,7 +20,6 @@
             flex-shrink: 0;
         }
 
-        /* Nút nổi bên phải */
         .floating-btn {
             width: 120px;
             height: 120px;
@@ -43,7 +41,6 @@
         .btn-cyan { background: #0891b2; background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; }
         .btn-white { background: white; color: #64748b; }
 
-        /* Modal / Toast */
         #toast {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
             background: #1e293b; color: white; padding: 14px 28px; border-radius: 100px;
@@ -67,9 +64,7 @@
 
     <div class="flex flex-col md:flex-row gap-6 items-start justify-center max-w-5xl w-full">
         
-        <!-- ================= HÓA ĐƠN CHÍNH ================= -->
         <div id="capture-area" class="bill-wrapper">
-            <!-- Header Bill -->
             <div class="flex justify-between items-start mb-8">
                 <div>
                     <h1 class="text-[32px] font-black text-slate-900 tracking-tighter leading-none" id="v_brand">SVY Home</h1>
@@ -81,7 +76,6 @@
                 </div>
             </div>
 
-            <!-- Info Grid -->
             <div class="grid grid-cols-3 gap-4 mb-10">
                 <div>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" id="lbl_month">THÁNG</p>
@@ -97,7 +91,6 @@
                 </div>
             </div>
 
-            <!-- Table -->
             <table class="w-full mb-8">
                 <thead>
                     <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -144,7 +137,6 @@
                 </tbody>
             </table>
 
-            <!-- Electricity Details -->
             <div class="bg-[#f8fafc] border border-slate-100 rounded-2xl p-4 flex justify-between text-center items-center mb-10">
                 <div>
                     <p class="text-[9px] font-bold text-slate-400 uppercase mb-1" id="lbl_e_old">ĐIỆN CŨ</p>
@@ -164,7 +156,6 @@
                 </div>
             </div>
 
-            <!-- Footer: Bank + QR -->
             <div class="flex gap-5">
                 <div class="flex-1 bg-[#f4f7fb] rounded-2xl p-5 border border-slate-100">
                     <p class="text-[10px] font-bold text-blue-800 uppercase mb-2 tracking-wide" id="lbl_pay">THÔNG TIN CHUYỂN KHOẢN</p>
@@ -188,7 +179,6 @@
             </div>
         </div>
 
-        <!-- ================= NÚT ACTION NỔI (BÊN PHẢI) ================= -->
         <div class="action-panel flex flex-col gap-4 gap-y-4">
             <button onclick="captureAndCopy()" class="floating-btn btn-blue">
                 <svg class="mb-2" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -206,25 +196,18 @@
 
     </div>
 
-    <!-- Modal Fallback cho trình duyệt chặn Copy -->
     <div id="fallback-modal" class="fixed inset-0 bg-black/80 hidden z-50 justify-center items-center p-4">
         <div class="bg-white rounded-3xl p-6 max-w-md w-full text-center relative">
             <h3 class="text-xl font-black text-slate-800 mb-2">Gửi hóa đơn thủ công</h3>
             <p class="text-xs text-slate-500 font-medium mb-6">Trình duyệt không hỗ trợ copy tự động</p>
-            
             <textarea id="fallback-text" readonly class="w-full h-20 p-3 bg-slate-50 border rounded-xl text-xs font-medium text-slate-700 mb-4 outline-none resize-none"></textarea>
-            
-            <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Nhấn giữ (hoặc click chuột phải) vào ảnh để Copy</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Nhấn giữ ảnh để Copy</p>
             <div id="fallback-img" class="border-2 border-slate-100 rounded-2xl overflow-hidden mb-6 flex justify-center bg-slate-50 p-2"></div>
-            
             <button onclick="document.getElementById('fallback-modal').style.display='none'" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl">ĐÓNG</button>
         </div>
     </div>
 
     <script>
-        // ============================================================
-        // DANH SÁCH CƠ SỞ (Cập nhật dựa trên cấu hình mới nhất)
-        // ============================================================
         const cfg = {
             "38HD": { name: "SVY Home", addr: "38 HOÀNG DIỆU, ĐÀ NẴNG", bank: "ACB", acc: "68682683", owner: "TRAN THI YEN PHUONG", isEn: false },
             "46HD": { name: "SVY Home", addr: "46 HOÀNG DIỆU, ĐÀ NẴNG", bank: "ACB", acc: "68682683", owner: "TRAN THI YEN PHUONG", isEn: false },
@@ -269,78 +252,76 @@
         }
 
         function loadBillData() {
-            const p = new URLSearchParams(window.location.search);
-            
-            const bld = p.get('building') || '38HD'; // Lấy mã cơ sở từ URL
-            const mon = p.get('month') || '-';
-            const rom = p.get('room') || '-';
-            const ten = p.get('tenant') || '-';
-            groupLink = decodeURIComponent(p.get('link') || '');
-            
-            const eO = parseInt(p.get('e_old')) || 0;
-            const eN = parseInt(p.get('e_new')) || 0;
-            const eU = Math.max(0, eN - eO);
-            
-            // Lấy giá điện (mặc định 4000)
-            const ePrice = parseInt(p.get('e_price')) || parseInt(p.get('price')) || 4000;
-            // Lấy tiền điện (hoặc tự tính)
-            let eAmt = parseInt(p.get('e_amount')) || parseInt(p.get('e_bill')) || parseInt(p.get('electricity_bill')) || 0;
-            if (eAmt === 0 && eU > 0) eAmt = eU * ePrice;
-            
-            const rnt = parseInt(p.get('rent')) || 0;
-            const wat = parseInt(p.get('water')) || 0;
-            const wif = parseInt(p.get('wifi')) || 0;
-            const srv = parseInt(p.get('s_fee')) || 0;
-            const oth = parseInt(p.get('other')) || 0;
-            
-            const total = rnt + eAmt + wat + wif + srv + oth;
-            const year = new Date().getFullYear();
-            const code = `${bld}P${rom}T${mon}Y${year}`;
+            try {
+                const p = new URLSearchParams(window.location.search);
+                const bld = p.get('building') || '38HD';
+                const mon = p.get('month') || '-';
+                const rom = p.get('room') || '-';
+                const ten = p.get('tenant') || '-';
+                groupLink = decodeURIComponent(p.get('link') || '');
+                
+                const eO = parseInt(p.get('e_old')) || 0;
+                const eN = parseInt(p.get('e_new')) || 0;
+                const eU = Math.max(0, eN - eO);
+                const ePrice = parseInt(p.get('e_price')) || 4000;
+                let eAmt = parseInt(p.get('e_amount')) || (eU * ePrice);
+                
+                const rnt = parseInt(p.get('rent')) || 0;
+                const wat = parseInt(p.get('water')) || 0;
+                const wif = parseInt(p.get('wifi')) || 0;
+                const srv = parseInt(p.get('s_fee')) || 0;
+                const oth = parseInt(p.get('other')) || 0;
+                
+                const total = rnt + eAmt + wat + wif + srv + oth;
+                const year = new Date().getFullYear();
+                const code = `${bld}P${rom}T${mon}Y${year}`;
 
-            globalRoom = rom; globalMonth = mon; globalCode = code; globalTotal = fmt(total);
+                globalRoom = rom; globalMonth = mon; globalCode = code; globalTotal = fmt(total);
 
-            // TÌM THÔNG TIN CƠ SỞ TRONG DANH SÁCH CFG
-            const c = cfg[bld] || cfg["38HD"]; // Nếu không tìm thấy mã, dùng mặc định 38HD
-            
-            const lang = c.isEn ? t.en : t.vi;
+                const c = cfg[bld] || cfg["38HD"];
+                const lang = c.isEn ? t.en : t.vi;
 
-            document.getElementById('v_brand').innerText = c.name;
-            document.getElementById('v_addr').innerText = c.addr;
-            document.getElementById('v_bank').innerText = c.bank + " Bank";
-            document.getElementById('v_acc').innerText = c.acc;
-            document.getElementById('v_owner').innerText = c.owner;
-            document.getElementById('v_code').innerText = code;
-            
-            for(let k in lang) {
-                const el = document.getElementById('lbl_' + k);
-                if(el) el.innerText = lang[k];
+                document.getElementById('v_brand').innerText = c.name;
+                document.getElementById('v_addr').innerText = c.addr;
+                document.getElementById('v_bank').innerText = c.bank + " Bank";
+                document.getElementById('v_acc').innerText = c.acc;
+                document.getElementById('v_owner').innerText = c.owner;
+                document.getElementById('v_code').innerText = code;
+                
+                for(let k in lang) {
+                    const el = document.getElementById('lbl_' + k);
+                    if(el) el.innerText = lang[k];
+                }
+                document.getElementById('v_title').innerText = lang.main;
+                document.getElementById('v_subtitle').innerText = lang.sub;
+
+                document.getElementById('v_month').innerText = `${mon} / ${year}`;
+                document.getElementById('v_room').innerText = rom;
+                document.getElementById('v_tenant').innerText = ten;
+
+                document.getElementById('v_rent_amt').innerText = fmt(rnt);
+                document.getElementById('v_elec_amt').innerText = fmt(eAmt);
+                document.getElementById('v_water_amt').innerText = fmt(wat);
+                document.getElementById('v_wifi_amt').innerText = fmt(wif);
+                document.getElementById('v_serv_amt').innerText = fmt(srv);
+                document.getElementById('v_other_amt').innerText = fmt(oth);
+                document.getElementById('v_total').innerText = globalTotal;
+
+                document.getElementById('v_e_old').innerText = fmt(eO);
+                document.getElementById('v_e_new').innerText = fmt(eN);
+                document.getElementById('v_e_used').innerText = fmt(eU);
+                document.getElementById('v_e_subtotal').innerText = fmt(eAmt);
+
+                const qrUrl = `https://img.vietqr.io/image/${c.bank}-${c.acc}-qr_only.png?amount=${total}&addInfo=${encodeURIComponent(code)}&accountName=${encodeURIComponent(c.owner)}`;
+                document.getElementById('v_qr').src = qrUrl;
+            } catch (err) {
+                console.error(err);
+                showToast("Lỗi tải dữ liệu!", true);
             }
-            document.getElementById('v_title').innerText = lang.main;
-            document.getElementById('v_subtitle').innerText = lang.sub;
-
-            document.getElementById('v_month').innerText = `${mon} / ${year}`;
-            document.getElementById('v_room').innerText = rom;
-            document.getElementById('v_tenant').innerText = ten;
-
-            document.getElementById('v_rent_amt').innerText = fmt(rnt);
-            document.getElementById('v_elec_amt').innerText = fmt(eAmt);
-            document.getElementById('v_water_amt').innerText = fmt(wat);
-            document.getElementById('v_wifi_amt').innerText = fmt(wif);
-            document.getElementById('v_serv_amt').innerText = fmt(srv);
-            document.getElementById('v_other_amt').innerText = fmt(oth);
-            document.getElementById('v_total').innerText = globalTotal;
-
-            document.getElementById('v_e_old').innerText = fmt(eO);
-            document.getElementById('v_e_new').innerText = fmt(eN);
-            document.getElementById('v_e_used').innerText = fmt(eU);
-            document.getElementById('v_e_subtotal').innerText = fmt(eAmt);
-
-            const qrUrl = `https://img.vietqr.io/image/${c.bank}-${c.acc}-qr_only.png?amount=${total}&addInfo=${encodeURIComponent(code)}&accountName=${encodeURIComponent(c.owner)}`;
-            document.getElementById('v_qr').src = qrUrl;
         }
 
         function openApp() {
-            if(!groupLink) { showToast("Phòng này chưa có link nhóm!", true); return; }
+            if(!groupLink) { showToast("Chưa có link nhóm!", true); return; }
             let finalLink = groupLink;
             if (groupLink.includes('chat.whatsapp.com/')) {
                 const code = groupLink.split('chat.whatsapp.com/')[1];
