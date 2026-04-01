@@ -222,12 +222,14 @@
     </div>
 
     <script>
-        // Cấu hình các cơ sở
+        // ============================================================
+        // DANH SÁCH CƠ SỞ (Cập nhật dựa trên cấu hình mới nhất)
+        // ============================================================
         const cfg = {
             "38HD": { name: "SVY Home", addr: "38 HOÀNG DIỆU, ĐÀ NẴNG", bank: "ACB", acc: "68682683", owner: "TRAN THI YEN PHUONG", isEn: false },
             "46HD": { name: "SVY Home", addr: "46 HOÀNG DIỆU, ĐÀ NẴNG", bank: "ACB", acc: "68682683", owner: "TRAN THI YEN PHUONG", isEn: false },
             "128TL": { name: "SVY Home", addr: "128 TRỊNH LỖI, ĐÀ NẴNG", bank: "VIB", acc: "686800888", owner: "TRAN HUU THUAN", isEn: false },
-            "07KMD10": { name: "SVY Apartment", addr: "07 KHUÊ MỸ ĐÔNG 10, ĐÀ NẴNG", bank: "ACB", acc: "52229868", owner: "TRAN THI YEN PHUONG", isEn: true }
+            "07KMD10": { name: "SVY Apartment", addr: "07 KHUÊ MỸ ĐÔNG 10, ĐÀ NẴNG", bank: "ACB", acc: "52229868", owner: "TRAN THI YEN PHUONG", isEn: true },
             "11AT7": { name: "SVY Apartment", addr: "11 AN THƯỢNG 7, ĐÀ NẴNG", bank: "VCB", acc: "0041000203339", owner: "HOANG DUC HUU", isEn: true }
         };
 
@@ -248,7 +250,6 @@
             }
         };
 
-        // Biến lưu trữ link nhóm Zalo
         let groupLink = "";
         let globalRoom = "";
         let globalMonth = "";
@@ -267,11 +268,10 @@
             setTimeout(() => { toast.style.top = '-100px'; }, 3000);
         }
 
-        // Tự động load dữ liệu từ URL truyền vào
         function loadBillData() {
             const p = new URLSearchParams(window.location.search);
             
-            const bld = p.get('building') || '38HD';
+            const bld = p.get('building') || '38HD'; // Lấy mã cơ sở từ URL
             const mon = p.get('month') || '-';
             const rom = p.get('room') || '-';
             const ten = p.get('tenant') || '-';
@@ -279,10 +279,13 @@
             
             const eO = parseInt(p.get('e_old')) || 0;
             const eN = parseInt(p.get('e_new')) || 0;
-            
-            // Cập nhật: Đọc nhiều định dạng biến tiền điện khác nhau (phòng trường hợp URL gửi sai tên)
-            const eAmt = parseInt(p.get('e_amount')) || parseInt(p.get('e_bill')) || parseInt(p.get('electricity_bill')) || 0;
             const eU = Math.max(0, eN - eO);
+            
+            // Lấy giá điện (mặc định 4000)
+            const ePrice = parseInt(p.get('e_price')) || parseInt(p.get('price')) || 4000;
+            // Lấy tiền điện (hoặc tự tính)
+            let eAmt = parseInt(p.get('e_amount')) || parseInt(p.get('e_bill')) || parseInt(p.get('electricity_bill')) || 0;
+            if (eAmt === 0 && eU > 0) eAmt = eU * ePrice;
             
             const rnt = parseInt(p.get('rent')) || 0;
             const wat = parseInt(p.get('water')) || 0;
@@ -291,18 +294,14 @@
             const oth = parseInt(p.get('other')) || 0;
             
             const total = rnt + eAmt + wat + wif + srv + oth;
-            
             const year = new Date().getFullYear();
             const code = `${bld}P${rom}T${mon}Y${year}`;
 
-            // Lưu biến toàn cục để dùng khi nhắn tin
-            globalRoom = rom;
-            globalMonth = mon;
-            globalCode = code;
-            globalTotal = fmt(total);
+            globalRoom = rom; globalMonth = mon; globalCode = code; globalTotal = fmt(total);
 
-            // Cấu hình ngôn ngữ & thông tin
-            const c = cfg[bld] || cfg["38HD"];
+            // TÌM THÔNG TIN CƠ SỞ TRONG DANH SÁCH CFG
+            const c = cfg[bld] || cfg["38HD"]; // Nếu không tìm thấy mã, dùng mặc định 38HD
+            
             const lang = c.isEn ? t.en : t.vi;
 
             document.getElementById('v_brand').innerText = c.name;
@@ -319,7 +318,6 @@
             document.getElementById('v_title').innerText = lang.main;
             document.getElementById('v_subtitle').innerText = lang.sub;
 
-            // Đổ dữ liệu vào giao diện
             document.getElementById('v_month').innerText = `${mon} / ${year}`;
             document.getElementById('v_room').innerText = rom;
             document.getElementById('v_tenant').innerText = ten;
@@ -337,66 +335,42 @@
             document.getElementById('v_e_used').innerText = fmt(eU);
             document.getElementById('v_e_subtotal').innerText = fmt(eAmt);
 
-            // Tạo mã QR
             const qrUrl = `https://img.vietqr.io/image/${c.bank}-${c.acc}-qr_only.png?amount=${total}&addInfo=${encodeURIComponent(code)}&accountName=${encodeURIComponent(c.owner)}`;
             document.getElementById('v_qr').src = qrUrl;
         }
 
-        // Mở App Zalo/WhatsApp (Ép mở Website)
         function openApp() {
-            if(!groupLink) {
-                showToast("Phòng này chưa có link nhóm!", true);
-                return;
-            }
-
+            if(!groupLink) { showToast("Phòng này chưa có link nhóm!", true); return; }
             let finalLink = groupLink;
-
-            // Chuyển link WhatsApp thành bản Web
             if (groupLink.includes('chat.whatsapp.com/')) {
                 const code = groupLink.split('chat.whatsapp.com/')[1];
                 finalLink = `https://web.whatsapp.com/accept?code=${code}`;
             } 
-            // Giữ nguyên link Zalo (Mặc định Zalo PC sẽ mở Landing Page Web của Zalo)
-            else if (groupLink.includes('zalo.me/g/')) {
-                finalLink = groupLink;
-            }
-
-            // Mở link trong tab mới
             window.open(finalLink, '_blank');
         }
 
-        // Chụp ảnh và Copy toàn bộ
         async function captureAndCopy() {
             showToast("Đang xử lý ảnh...");
             const node = document.getElementById('capture-area');
             const msg = `Chào bạn, SVY gửi hóa đơn phòng ${globalRoom} tháng ${globalMonth}.\nTổng tiền: ${globalTotal}đ\nNội dung CK: ${globalCode}`;
-            
             try {
                 const canvas = await html2canvas(node, { scale: 3, useCORS: true, backgroundColor: "#ffffff" });
                 canvas.toBlob(async (blob) => {
                     try {
                         await navigator.clipboard.write([
-                            new ClipboardItem({ 
-                                "image/png": blob, 
-                                "text/plain": new Blob([msg], { type: "text/plain" }) 
-                            })
+                            new ClipboardItem({ "image/png": blob, "text/plain": new Blob([msg], { type: "text/plain" }) })
                         ]);
                         showToast("✨ Đã copy Ảnh & Lời nhắn!");
                     } catch (e) {
-                        // Fallback cho trình duyệt chặn
                         document.getElementById('fallback-text').value = msg;
                         document.getElementById('fallback-img').innerHTML = `<img src="${canvas.toDataURL()}" class="max-w-[200px] h-auto rounded-xl shadow-sm mx-auto block">`;
                         document.getElementById('fallback-modal').style.display = 'flex';
                     }
                 }, 'image/png');
-            } catch (err) {
-                showToast("❌ Lỗi tạo ảnh", true);
-            }
+            } catch (err) { showToast("❌ Lỗi tạo ảnh", true); }
         }
 
-        // Chạy ngay khi mở web
         window.onload = loadBillData;
     </script>
 </body>
 </html>
-
