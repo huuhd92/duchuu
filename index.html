@@ -211,28 +211,28 @@
         const cfg = {
             "38HD": { name: "SVY Home", addr: "38 HOÀNG DIỆU, ĐÀ NẴNG", bank: "ACB", acc: "68682683", owner: "TRAN THI YEN PHUONG", isEn: false },
             "46HD": { name: "SVY Home", addr: "46 HOÀNG DIỆU, ĐÀ NẴNG", bank: "ACB", acc: "68682683", owner: "TRAN THI YEN PHUONG", isEn: false },
-            "128TL": { name: "SVY Home", addr: "128 TRỊNH LỖI, ĐÀ NẴNG", bank: "VIB", acc: "686800888", owner: "TRAN HUU THUAN", isEn: false },
+            "128TL": { name: "SVY Home", addr: "128 TRỊNH LỖI, ĐÀ NẴNG", bank: "ACB", acc: "68682683", owner: "TRAN THI YEN PHUONG", isEn: false },
             "07KMD10": { name: "SVY Apartment", addr: "07 KHUÊ MỸ ĐÔNG 10, ĐÀ NẴNG", bank: "ACB", acc: "52229868", owner: "TRAN THI YEN PHUONG", isEn: true },
             "11AT7": { name: "SVY Apartment", addr: "11 AN THƯỢNG 7, ĐÀ NẴNG", bank: "VCB", acc: "0041000203339", owner: "HOANG DUC HUU", isEn: true },
-            "61PT": { name: "Elio Apartment", addr: "61 PHAN TỨ, ĐÀ NẴNG", bank: "MB", acc: "98000068688888", owner: "Ho kinh Doanh Kieu Ngan", isEn: true }
+            "61PT": { name: "Elio Apartment", addr: "61 PHAN TỨ, ĐÀ NẴNG", bank: "MB", acc: "98000068688888", owner: "Ho Kinh Doanh Kieu Ngan", isEn: true }
         };
 
-        const t = {
-            vi: {
-                main: "HÓA ĐƠN", sub: "CHI TIẾT TIỀN PHÒNG", month: "THÁNG", room: "PHÒNG", tenant: "KHÁCH THUÊ",
-                stt: "STT", desc: "MÔ TẢ", amt: "THÀNH TIỀN", rent: "Tiền thuê nhà", elec: "Tiền điện", water: "Tiền nước",
-                wifi: "Tiền wifi", serv: "Phí dịch vụ", other: "Mục khác", total: "TỔNG CỘNG",
-                eOld: "ĐIỆN CŨ", eNew: "ĐIỆN MỚI", eUsed: "SỬ DỤNG", eSub: "THÀNH TIỀN",
-                pay: "THÔNG TIN CHUYỂN KHOẢN", code: "NỘI DUNG CK:", note: "* Vui lòng ghi chính xác nội dung ck"
-            },
-            en: {
-                main: "INVOICE", sub: "RENTAL DETAILS", month: "MONTH", room: "ROOM", tenant: "TENANT",
-                stt: "NO.", desc: "DESCRIPTION", amt: "AMOUNT", rent: "Room Rent", elec: "Electricity", water: "Water",
-                wifi: "Wifi", serv: "Service Fee", other: "Others", total: "TOTAL",
-                 eOld: "Old Meter", eNew: "New Meter", eUsed: "Used", eSub: "Subtotal",
-                pay: "BANK TRANSFER INFO", code: "TRANSFER REMARK:", note: "* Please enter exact remark"
-            }
-        };
+       const t = {
+    vi: {
+        main: "HÓA ĐƠN", sub: "CHI TIẾT TIỀN PHÒNG", month: "THÁNG", room: "PHÒNG", tenant: "KHÁCH THUÊ",
+        stt: "STT", desc: "MÔ TẢ", amt: "THÀNH TIỀN", rent: "Tiền thuê nhà", elec: "Tiền điện", water: "Tiền nước",
+        wifi: "Tiền wifi", serv: "Phí dịch vụ", other: "Mục khác", total: "TỔNG CỘNG",
+        e_old: "ĐIỆN CŨ", e_new: "ĐIỆN MỚI", e_used: "SỬ DỤNG", e_sub: "THÀNH TIỀN", // <-- Đã sửa ở đây
+        pay: "THÔNG TIN CHUYỂN KHOẢN", code: "NỘI DUNG CK:", note: "* Vui lòng ghi chính xác nội dung ck"
+    },
+    en: {
+        main: "INVOICE", sub: "RENTAL DETAILS", month: "MONTH", room: "ROOM", tenant: "TENANT",
+        stt: "NO.", desc: "DESCRIPTION", amt: "AMOUNT", rent: "Room Rent", elec: "Electricity", water: "Water",
+        wifi: "Wifi", serv: "Service Fee", other: "Others", total: "TOTAL",
+        e_old: "Old Meter", e_new: "New Meter", e_used: "Used", e_sub: "Subtotal", // <-- Đã sửa ở đây
+        pay: "BANK TRANSFER INFO", code: "TRANSFER REMARK:", note: "* Please enter exact remark"
+    }
+};
 
         let groupLink = "";
         let globalRoom = "";
