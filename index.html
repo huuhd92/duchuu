@@ -1,70 +1,133 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVY Home - Hóa Đơn Tiền Phòng</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f4f7fa; color: #1e293b; display: flex; justify-content: center; padding: 40px 20px; min-height: 100vh; }
-        
-        .bill-wrapper {
-            width: 480px;
-            background: white;
-            border-radius: 36px;
-            padding: 40px;
-            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.1);
-            position: relative;
-            flex-shrink: 0;
+function loadBillData() {
+            try {
+                const p = new URLSearchParams(window.location.search);
+                const bld = (p.get('building') || '38HD').trim();
+                const mon = (p.get('month') || '-').trim();
+                const rom = (p.get('room') || '-').trim();
+                const ten = decodeURIComponent(p.get('tenant') || '-').trim();
+                groupLink = decodeURIComponent(p.get('link') || '').trim();
+                
+                const parseSafeInt = (val, defaultVal = 0) => {
+                    const parsed = parseInt(val);
+                    return isNaN(parsed) ? defaultVal : parsed;
+                };
+
+                const eO = parseSafeInt(p.get('e_old'));
+                const eN = parseSafeInt(p.get('e_new'));
+                const eU = Math.max(0, eN - eO);
+                const ePrice = parseSafeInt(p.get('e_price'), 4000);
+                let eAmt = parseSafeInt(p.get('e_amount'), eU * ePrice);
+                
+                const rnt = parseSafeInt(p.get('rent'));
+                const wat = parseSafeInt(p.get('water'));
+                const wif = parseSafeInt(p.get('wifi'));
+                const srv = parseSafeInt(p.get('s_fee'));
+                
+                // MỤC KHÁC 1 & 2
+                const oth = parseSafeInt(p.get('other'));
+                const otherNote = decodeURIComponent(p.get('other_note') || '').replace(/^undefined$|^null$/, '').trim();
+                
+                const oth2 = parseSafeInt(p.get('other2'));
+                const other2Desc = decodeURIComponent(p.get('other2_desc') || '').replace(/^undefined$|^null$/, '').trim();
+                const other2Note = decodeURIComponent(p.get('other2_note') || '').replace(/^undefined$|^null$/, '').trim();
+
+                // KỲ HẠN
+                const rentPeriod = decodeURIComponent(p.get('rent_period') || '').replace(/^undefined$|^null$/, '').trim();
+                const elecPeriod = decodeURIComponent(p.get('elec_period') || '').replace(/^undefined$|^null$/, '').trim();
+                
+                const total = rnt + eAmt + wat + wif + srv + oth + oth2;
+                const year = new Date().getFullYear();
+                const code = `${bld}P${rom}T${mon}Y${year}`;
+
+                globalRoom = rom; globalMonth = mon; globalCode = code; globalTotal = fmt(total);
+
+                const c = cfg[bld] || cfg["38HD"];
+                const lang = c.isEn ? t.en : t.vi;
+
+                document.getElementById('v_brand').innerText = c.name;
+                document.getElementById('v_addr').innerText = c.addr;
+                document.getElementById('v_bank').innerText = c.bank + " Bank";
+                document.getElementById('v_acc').innerText = c.acc;
+                document.getElementById('v_owner').innerText = c.owner;
+                document.getElementById('v_code').innerText = code;
+                
+                for(let k in lang) {
+                    const el = document.getElementById('lbl_' + k);
+                    if(el) el.innerText = lang[k];
+                }
+                document.getElementById('v_title').innerText = lang.main;
+                document.getElementById('v_subtitle').innerText = lang.sub;
+
+                document.getElementById('v_month').innerText = `${mon} / ${year}`;
+                document.getElementById('v_room').innerText = rom;
+                document.getElementById('v_tenant').innerText = ten;
+
+                document.getElementById('v_rent_amt').innerText = fmt(rnt);
+                document.getElementById('v_elec_amt').innerText = fmt(eAmt);
+                document.getElementById('v_water_amt').innerText = fmt(wat);
+                document.getElementById('v_wifi_amt').innerText = fmt(wif);
+                document.getElementById('v_serv_amt').innerText = fmt(srv);
+                document.getElementById('v_total').innerText = globalTotal;
+
+                // XỬ LÝ KỲ HẠN
+                let showPeriodBox = false;
+                if (rentPeriod) {
+                    document.getElementById('v_rent_period').innerText = rentPeriod;
+                    document.getElementById('row_rent_p').style.display = 'flex';
+                    showPeriodBox = true;
+                }
+                if (elecPeriod) {
+                    document.getElementById('v_elec_period').innerText = elecPeriod;
+                    document.getElementById('row_elec_p').style.display = 'flex';
+                    showPeriodBox = true;
+                }
+                if (showPeriodBox) {
+                    document.getElementById('box_period').style.display = 'block';
+                }
+
+                // XỬ LÝ MỤC KHÁC 1
+                document.getElementById('v_other_amt').innerText = fmt(oth);
+                const elOtherNote = document.getElementById('v_other_note');
+                if (otherNote) {
+                    elOtherNote.innerText = `(${otherNote})`;
+                    elOtherNote.style.display = 'block';
+                }
+
+                // XỬ LÝ MỤC KHÁC 2
+                if (oth2 > 0 || other2Note) {
+                    const rowOther2 = document.getElementById('row_other2');
+                    rowOther2.style.display = 'table-row';
+                    if (other2Desc) {
+                        document.getElementById('lbl_other2').innerText = other2Desc;
+                    }
+                    document.getElementById('v_other2_amt').innerText = fmt(oth2);
+                    
+                    if (other2Note) {
+                        const elOther2Note = document.getElementById('v_other2_note');
+                        elOther2Note.innerText = `(${other2Note})`;
+                        elOther2Note.style.display = 'block';
+                    }
+                }
+
+                document.getElementById('v_e_old').innerText = fmt(eO);
+                document.getElementById('v_e_new').innerText = fmt(eN);
+                document.getElementById('v_e_used').innerText = fmt(eU);
+                document.getElementById('v_e_subtotal').innerText = fmt(eAmt);
+
+                // TẠO QR VIETQR
+                const bankClean = encodeURIComponent(c.bank.trim());
+                const accClean = encodeURIComponent(c.acc.trim());
+                const ownerClean = encodeURIComponent(c.owner.trim());
+                const qrUrl = `https://img.vietqr.io/image/${bankClean}-${accClean}-qr_only.png?amount=${total}&addInfo=${encodeURIComponent(code)}&accountName=${ownerClean}`;
+                
+                const qrImg = document.getElementById('v_qr');
+                qrImg.src = qrUrl;
+                qrImg.onerror = function() {
+                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`2|99|${c.acc}|${c.bank}|${total}|${code}`)}`;
+                };
+
+            } catch (err) {
+                console.error("Lỗi script:", err);
+                showToast("Lỗi tải dữ liệu!", true);
+            }
         }
-
-        .floating-btn {
-            width: 120px;
-            height: 120px;
-            border-radius: 28px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .floating-btn:active { transform: scale(0.95); }
-        .btn-blue { background: #4f46e5; background: linear-gradient(135deg, #4f46e5, #3b82f6); color: white; }
-        .btn-cyan { background: #0891b2; background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; }
-        .btn-white { background: white; color: #64748b; }
-
-        #toast {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: #1e293b; color: white; padding: 14px 28px; border-radius: 100px;
-            font-weight: 700; font-size: 14px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 50;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            display: flex; align-items: center; gap: 8px;
-        }
-
-        @media (max-width: 768px) {
-            body { padding: 20px 10px; flex-direction: column; align-items: center; }
-            .bill-wrapper { width: 100%; max-width: 480px; padding: 30px 20px; border-radius: 28px; }
-            .action-panel { flex-direction: row; width: 100%; max-width: 480px; margin-top: 20px; justify-content: space-between; }
-            .floating-btn { height: 80px; flex: 1; border-radius: 20px; }
-            .floating-btn svg { width: 20px; height: 20px; margin-bottom: 4px; }
-        }
-    </style>
-</head>
-<body>
-
-    <div id="toast"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> <span id="toast-msg">Đã copy thành công!</span></div>
-
-    <div class="flex flex-col md:flex-row gap-6 items-start justify-center max-w-5xl w-full">
-        
-        <div id="capture-area" class="bill-wrapper">
-            <div class="flex justify-between items-start mb-8">
-                <div>
-                    <h1 class="text-[32px] font-black text-slate
