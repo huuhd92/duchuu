@@ -76,7 +76,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-4 mb-10">
+            <div class="grid grid-cols-3 gap-4 mb-6">
                 <div>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" id="lbl_month">THÁNG</p>
                     <p class="text-xl font-black text-slate-800" id="v_month">-</p>
@@ -88,6 +88,18 @@
                 <div>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" id="lbl_tenant">KHÁCH THUÊ</p>
                     <p class="text-base font-black text-slate-800 leading-tight" id="v_tenant">-</p>
+                </div>
+            </div>
+
+            <!-- KHỐI KỲ HẠN THANH TOÁN (TỰ ẨN NẾU TRỐNG) -->
+            <div id="box_period" class="hidden bg-slate-50 border border-slate-100 rounded-2xl p-3.5 mb-8 text-xs font-semibold text-slate-600 space-y-1.5">
+                <div id="row_rent_p" class="hidden flex justify-between items-center">
+                    <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider" id="lbl_rent_p">KỲ TIỀN PHÒNG:</span>
+                    <span class="font-black text-slate-700" id="v_rent_period">-</span>
+                </div>
+                <div id="row_elec_p" class="hidden flex justify-between items-center">
+                    <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider" id="lbl_elec_p">KỲ ĐIỆN NƯỚC:</span>
+                    <span class="font-black text-slate-700" id="v_elec_period">-</span>
                 </div>
             </div>
 
@@ -125,12 +137,28 @@
                         <td class="py-3.5" id="lbl_serv">Phí dịch vụ</td>
                         <td class="py-3.5 text-right font-black" id="v_serv_amt">0</td>
                     </tr>
-                    <tr class="border-t border-b border-slate-100">
-                        <td class="py-3.5 text-slate-400 font-bold">6</td>
-                        <td class="py-3.5" id="lbl_other">Mục khác</td>
-                        <td class="py-3.5 text-right font-black" id="v_other_amt">0</td>
+                    
+                    <!-- MỤC KHÁC 1 + NOTE -->
+                    <tr class="border-t border-slate-100" id="row_other1">
+                        <td class="py-3.5 text-slate-400 font-bold align-top">6</td>
+                        <td class="py-3.5">
+                            <span id="lbl_other">Mục khác</span>
+                            <p id="v_other_note" class="text-[11px] font-medium text-slate-400 italic mt-0.5 hidden"></p>
+                        </td>
+                        <td class="py-3.5 text-right font-black align-top" id="v_other_amt">0</td>
                     </tr>
-                    <tr>
+
+                    <!-- MỤC KHÁC 2 + NOTE (TỰ ẨN NẾU KHÔNG CÓ) -->
+                    <tr class="border-t border-slate-100 hidden" id="row_other2">
+                        <td class="py-3.5 text-slate-400 font-bold align-top">7</td>
+                        <td class="py-3.5">
+                            <span id="lbl_other2">Mục khác 2</span>
+                            <p id="v_other2_note" class="text-[11px] font-medium text-slate-400 italic mt-0.5 hidden"></p>
+                        </td>
+                        <td class="py-3.5 text-right font-black align-top" id="v_other2_amt">0</td>
+                    </tr>
+
+                    <tr class="border-t border-b border-slate-100">
                         <td colspan="2" class="py-6 text-blue-700 font-black text-lg tracking-tight" id="lbl_total">TỔNG CỘNG</td>
                         <td class="py-6 text-right text-blue-700 font-black text-[26px] tracking-tighter" id="v_total">0</td>
                     </tr>
@@ -209,30 +237,32 @@
 
     <script>
         const cfg = {
-            "38HD": { name: "SVY Home", addr: "38 HOÀNG DIỆU, ĐÀ NẴNG", bank: "", acc: "", owner: "", isEn: false },
-            "46HD": { name: "SVY Home", addr: "46 HOÀNG DIỆU, ĐÀ NẴNG", bank: "", acc: "", owner: "", isEn: false },
+            "38HD": { name: "SVY Home", addr: "38 HOÀNG DIỆU, ĐÀ NẴNG", bank: "ACB", acc: "68682683", owner: "TRAN THI YEN PHUONG", isEn: false },
+            "46HD": { name: "SVY Home", addr: "46 HOÀNG DIỆU, ĐÀ NẴNG", bank: "ACB", acc: "68682683", owner: "TRAN THI YEN PHUONG", isEn: false },
             "128TL": { name: "SVY Home", addr: "128 TRỊNH LỖI, ĐÀ NẴNG", bank: "ACB", acc: "240295468", owner: "TRAN THI YEN PHUONG", isEn: false },
             "07KMD10": { name: "SVY Apartment", addr: "07 KHUÊ MỸ ĐÔNG 10, ĐÀ NẴNG", bank: "ACB", acc: "240295468", owner: "TRAN THI YEN PHUONG", isEn: true },
             "11AT7": { name: "SVY Apartment", addr: "11 AN THƯỢNG 7, ĐÀ NẴNG", bank: "VCB", acc: "9917955234", owner: "HOANG DUC HUU", isEn: true },
             "61PT": { name: "Elio Apartment", addr: "61 PHAN TỨ, ĐÀ NẴNG", bank: "MB", acc: "98000068688888", owner: "Ho Kinh Doanh Kieu Ngan", isEn: true }
         };
 
-       const t = {
-    vi: {
-        main: "HÓA ĐƠN", sub: "CHI TIẾT TIỀN PHÒNG", month: "THÁNG", room: "PHÒNG", tenant: "KHÁCH THUÊ",
-        stt: "STT", desc: "MÔ TẢ", amt: "THÀNH TIỀN", rent: "Tiền thuê nhà", elec: "Tiền điện", water: "Tiền nước",
-        wifi: "Tiền wifi", serv: "Phí dịch vụ", other: "Mục khác", total: "TỔNG CỘNG",
-        e_old: "ĐIỆN CŨ", e_new: "ĐIỆN MỚI", e_used: "SỬ DỤNG", e_sub: "THÀNH TIỀN", // <-- Đã sửa ở đây
-        pay: "THÔNG TIN CHUYỂN KHOẢN", code: "NỘI DUNG CK:", note: "* Vui lòng ghi chính xác nội dung ck"
-    },
-    en: {
-        main: "INVOICE", sub: "RENTAL DETAILS", month: "MONTH", room: "ROOM", tenant: "TENANT",
-        stt: "NO.", desc: "DESCRIPTION", amt: "AMOUNT", rent: "Room Rent", elec: "Electricity", water: "Water",
-        wifi: "Wifi", serv: "Service Fee", other: "Others", total: "TOTAL",
-        e_old: "Old Meter", e_new: "New Meter", e_used: "Used", e_sub: "Subtotal", // <-- Đã sửa ở đây
-        pay: "BANK TRANSFER INFO", code: "TRANSFER REMARK:", note: "* Please enter exact remark"
-    }
-};
+        const t = {
+            vi: {
+                main: "HÓA ĐƠN", sub: "CHI TIẾT TIỀN PHÒNG", month: "THÁNG", room: "PHÒNG", tenant: "KHÁCH THUÊ",
+                stt: "STT", desc: "MÔ TẢ", amt: "THÀNH TIỀN", rent: "Tiền thuê nhà", elec: "Tiền điện", water: "Tiền nước",
+                wifi: "Tiền wifi", serv: "Phí dịch vụ", other: "Mục khác", other2: "Mục khác 2", total: "TỔNG CỘNG",
+                e_old: "ĐIỆN CŨ", e_new: "ĐIỆN MỚI", e_used: "SỬ DỤNG", e_sub: "THÀNH TIỀN",
+                pay: "THÔNG TIN CHUYỂN KHOẢN", code: "NỘI DUNG CK:", note: "* Vui lòng ghi chính xác nội dung ck",
+                rent_p: "KỲ TIỀN PHÒNG:", elec_p: "KỲ ĐIỆN NƯỚC:"
+            },
+            en: {
+                main: "INVOICE", sub: "RENTAL DETAILS", month: "MONTH", room: "ROOM", tenant: "TENANT",
+                stt: "NO.", desc: "DESCRIPTION", amt: "AMOUNT", rent: "Room Rent", elec: "Electricity", water: "Water",
+                wifi: "Wifi", serv: "Service Fee", other: "Others", other2: "Others 2", total: "TOTAL",
+                e_old: "Old Meter", e_new: "New Meter", e_used: "Used", e_sub: "Subtotal",
+                pay: "BANK TRANSFER INFO", code: "TRANSFER REMARK:", note: "* Please enter exact remark",
+                rent_p: "ROOM PERIOD:", elec_p: "UTILITIES PERIOD:"
+            }
+        };
 
         let groupLink = "";
         let globalRoom = "";
@@ -271,9 +301,20 @@
                 const wat = parseInt(p.get('water')) || 0;
                 const wif = parseInt(p.get('wifi')) || 0;
                 const srv = parseInt(p.get('s_fee')) || 0;
-                const oth = parseInt(p.get('other')) || 0;
                 
-                const total = rnt + eAmt + wat + wif + srv + oth;
+                // MỤC KHÁC 1 & 2 (ĐỒNG BỘ CHUẨN TÊN TỪ LARK)
+                const oth = parseInt(p.get('other')) || 0;
+                const otherNote = decodeURIComponent(p.get('other_note') || '').trim();
+                
+                const oth2 = parseInt(p.get('other2')) || 0;
+                const other2Desc = decodeURIComponent(p.get('other2_desc') || '').trim();
+                const other2Note = decodeURIComponent(p.get('other2_note') || '').trim();
+
+                // KỲ HẠN
+                const rentPeriod = decodeURIComponent(p.get('rent_period') || '').trim();
+                const elecPeriod = decodeURIComponent(p.get('elec_period') || '').trim();
+                
+                const total = rnt + eAmt + wat + wif + srv + oth + oth2;
                 const year = new Date().getFullYear();
                 const code = `${bld}P${rom}T${mon}Y${year}`;
 
@@ -305,8 +346,45 @@
                 document.getElementById('v_water_amt').innerText = fmt(wat);
                 document.getElementById('v_wifi_amt').innerText = fmt(wif);
                 document.getElementById('v_serv_amt').innerText = fmt(srv);
-                document.getElementById('v_other_amt').innerText = fmt(oth);
                 document.getElementById('v_total').innerText = globalTotal;
+
+                // XỬ LÝ KỲ HẠN (rent_period & elec_period)
+                let hasPeriod = false;
+                if (rentPeriod) {
+                    document.getElementById('v_rent_period').innerText = rentPeriod;
+                    document.getElementById('row_rent_p').classList.remove('hidden');
+                    hasPeriod = true;
+                }
+                if (elecPeriod) {
+                    document.getElementById('v_elec_period').innerText = elecPeriod;
+                    document.getElementById('row_elec_p').classList.remove('hidden');
+                    hasPeriod = true;
+                }
+                if (hasPeriod) {
+                    document.getElementById('box_period').classList.remove('hidden');
+                }
+
+                // XỬ LÝ MỤC KHÁC 1
+                document.getElementById('v_other_amt').innerText = fmt(oth);
+                const elOtherNote = document.getElementById('v_other_note');
+                if (otherNote) {
+                    elOtherNote.innerText = `(${otherNote})`;
+                    elOtherNote.classList.remove('hidden');
+                }
+
+                // XỬ LÝ MỤC KHÁC 2 (TỰ ẨN NẾU KHÔNG CÓ TIỀN & KHÔNG CÓ NOTE)
+                if (oth2 > 0 || other2Note) {
+                    const rowOther2 = document.getElementById('row_other2');
+                    rowOther2.classList.remove('hidden');
+                    if (other2Desc) document.getElementById('lbl_other2').innerText = other2Desc;
+                    document.getElementById('v_other2_amt').innerText = fmt(oth2);
+                    
+                    if (other2Note) {
+                        const elOther2Note = document.getElementById('v_other2_note');
+                        elOther2Note.innerText = `(${other2Note})`;
+                        elOther2Note.classList.remove('hidden');
+                    }
+                }
 
                 document.getElementById('v_e_old').innerText = fmt(eO);
                 document.getElementById('v_e_new').innerText = fmt(eN);
