@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f4f7fa; color: #1e293b; display: flex; justify-content: center; padding: 40px 20px; min-height: 100vh; }
+        
         .bill-wrapper {
             width: 480px;
             background: white;
@@ -18,6 +19,7 @@
             position: relative;
             flex-shrink: 0;
         }
+
         .floating-btn {
             width: 120px;
             height: 120px;
@@ -38,6 +40,7 @@
         .btn-blue { background: #4f46e5; background: linear-gradient(135deg, #4f46e5, #3b82f6); color: white; }
         .btn-cyan { background: #0891b2; background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; }
         .btn-white { background: white; color: #64748b; }
+
         #toast {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
             background: #1e293b; color: white; padding: 14px 28px; border-radius: 100px;
@@ -45,6 +48,7 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             display: flex; align-items: center; gap: 8px;
         }
+
         @media (max-width: 768px) {
             body { padding: 20px 10px; flex-direction: column; align-items: center; }
             .bill-wrapper { width: 100%; max-width: 480px; padding: 30px 20px; border-radius: 28px; }
@@ -56,10 +60,7 @@
 </head>
 <body>
 
-    <div id="toast">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-        <span id="toast-msg">Đã copy thành công!</span>
-    </div>
+    <div id="toast"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> <span id="toast-msg">Đã copy thành công!</span></div>
 
     <div class="flex flex-col md:flex-row gap-6 items-start justify-center max-w-5xl w-full">
         
@@ -90,15 +91,15 @@
                 </div>
             </div>
 
-            <!-- KHỐI THỜI GIAN KỲ HẠN -->
-            <div id="box_period" style="display: none;" class="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 mb-8 text-xs font-semibold text-slate-600">
-                <div id="row_rent_p" style="display: none;" class="flex justify-between items-center py-0.5">
-                    <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider" id="lbl_rent_p">KỲ TIỀN PHÒNG:</span>
-                    <span class="font-black text-slate-700" id="v_rent_period">-</span>
+            <!-- 3. THÔNG BÁO KỲ TIỀN NHÀ & ĐIỆN NƯỚC (TỰ ẨN NẾU TRỐNG) -->
+            <div id="box_period" style="display: none;" class="bg-[#f8fafc] border border-slate-100 rounded-2xl p-3.5 mb-6 text-xs">
+                <div id="row_rent_p" style="display: none;" class="flex justify-between items-center py-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" id="lbl_rent_p">KỲ TIỀN PHÒNG:</span>
+                    <span class="font-bold text-slate-700" id="v_rent_period">-</span>
                 </div>
-                <div id="row_elec_p" style="display: none;" class="flex justify-between items-center py-0.5">
-                    <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider" id="lbl_elec_p">KỲ ĐIỆN NƯỚC:</span>
-                    <span class="font-black text-slate-700" id="v_elec_period">-</span>
+                <div id="row_elec_p" style="display: none;" class="flex justify-between items-center py-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" id="lbl_elec_p">KỲ ĐIỆN NƯỚC:</span>
+                    <span class="font-bold text-slate-700" id="v_elec_period">-</span>
                 </div>
             </div>
 
@@ -136,28 +137,25 @@
                         <td class="py-3.5" id="lbl_serv">Phí dịch vụ</td>
                         <td class="py-3.5 text-right font-black" id="v_serv_amt">0</td>
                     </tr>
-                    
-                    <!-- MỤC KHÁC 1 -->
-                    <tr class="border-t border-slate-100" id="row_other1">
+                    <!-- 1. MỤC OTHER 1 + NOTE -->
+                    <tr class="border-t border-slate-100">
                         <td class="py-3.5 text-slate-400 font-bold align-top">6</td>
                         <td class="py-3.5">
                             <span id="lbl_other">Mục khác</span>
-                            <p id="v_other_note" class="text-[11px] font-medium text-slate-400 italic mt-0.5" style="display: none;"></p>
+                            <p id="v_other_note" style="display: none;" class="text-[11px] font-medium text-slate-400 italic mt-0.5"></p>
                         </td>
                         <td class="py-3.5 text-right font-black align-top" id="v_other_amt">0</td>
                     </tr>
-
-                    <!-- MỤC KHÁC 2 -->
-                    <tr class="border-t border-slate-100" id="row_other2" style="display: none;">
+                    <!-- 2. MỤC OTHER 2 + NOTE (TỰ ẨN NẾU TRỐNG) -->
+                    <tr id="row_other2" style="display: none;" class="border-t border-slate-100">
                         <td class="py-3.5 text-slate-400 font-bold align-top">7</td>
                         <td class="py-3.5">
                             <span id="lbl_other2">Mục khác 2</span>
-                            <p id="v_other2_note" class="text-[11px] font-medium text-slate-400 italic mt-0.5" style="display: none;"></p>
+                            <p id="v_other2_note" style="display: none;" class="text-[11px] font-medium text-slate-400 italic mt-0.5"></p>
                         </td>
                         <td class="py-3.5 text-right font-black align-top" id="v_other2_amt">0</td>
                     </tr>
-
-                    <tr class="border-t border-b border-slate-100">
+                    <tr class="border-t border-slate-100">
                         <td colspan="2" class="py-6 text-blue-700 font-black text-lg tracking-tight" id="lbl_total">TỔNG CỘNG</td>
                         <td class="py-6 text-right text-blue-700 font-black text-[26px] tracking-tighter" id="v_total">0</td>
                     </tr>
@@ -198,8 +196,8 @@
                 </div>
                 
                 <div class="flex flex-col items-center justify-end">
-                    <div class="bg-white p-2 border border-slate-100 rounded-[20px] shadow-sm flex items-center justify-center min-w-[136px] min-h-[136px]">
-                        <img id="v_qr" src="" alt="QR Code" class="w-[120px] h-[120px] object-contain rounded-xl">
+                    <div class="bg-white p-2 border border-slate-100 rounded-[20px] shadow-sm">
+                        <img id="v_qr" src="" crossorigin="anonymous" class="w-[120px] h-[120px] object-contain rounded-xl">
                     </div>
                     <p class="text-[8px] font-bold text-slate-400 tracking-widest uppercase mt-2">VIETQR • NAPAS247</p>
                 </div>
@@ -281,40 +279,40 @@
             setTimeout(() => { toast.style.top = '-100px'; }, 3000);
         }
 
+        function cleanParam(val) {
+            if (!val) return "";
+            const s = decodeURIComponent(val).trim();
+            if (s === "undefined" || s === "null") return "";
+            return s;
+        }
+
         function loadBillData() {
             try {
                 const p = new URLSearchParams(window.location.search);
-                const bld = (p.get('building') || '38HD').trim();
-                const mon = (p.get('month') || '-').trim();
-                const rom = (p.get('room') || '-').trim();
-                const ten = (p.get('tenant') || '-').trim();
-                groupLink = decodeURIComponent(p.get('link') || '').trim();
+                const bld = p.get('building') || '38HD';
+                const mon = p.get('month') || '-';
+                const rom = p.get('room') || '-';
+                const ten = p.get('tenant') || '-';
+                groupLink = decodeURIComponent(p.get('link') || '');
                 
-                const parseSafeInt = (val, defaultVal = 0) => {
-                    const parsed = parseInt(val, 10);
-                    return isNaN(parsed) ? defaultVal : parsed;
-                };
-
-                const eO = parseSafeInt(p.get('e_old'));
-                const eN = parseSafeInt(p.get('e_new'));
+                const eO = parseInt(p.get('e_old')) || 0;
+                const eN = parseInt(p.get('e_new')) || 0;
                 const eU = Math.max(0, eN - eO);
-                const ePrice = parseSafeInt(p.get('e_price'), 4000);
-                let eAmt = parseSafeInt(p.get('e_amount'), eU * ePrice);
+                const ePrice = parseInt(p.get('e_price')) || 4000;
+                let eAmt = parseInt(p.get('e_amount')) || (eU * ePrice);
                 
-                const rnt = parseSafeInt(p.get('rent'));
-                const wat = parseSafeInt(p.get('water'));
-                const wif = parseSafeInt(p.get('wifi'));
-                const srv = parseSafeInt(p.get('s_fee'));
-                
-                const oth = parseSafeInt(p.get('other'));
-                const otherNote = (p.get('other_note') || '').replace(/^undefined$|^null$/, '').trim();
-                
-                const oth2 = parseSafeInt(p.get('other2'));
-                const other2Desc = (p.get('other2_desc') || '').replace(/^undefined$|^null$/, '').trim();
-                const other2Note = (p.get('other2_note') || '').replace(/^undefined$|^null$/, '').trim();
+                const rnt = parseInt(p.get('rent')) || 0;
+                const wat = parseInt(p.get('water')) || 0;
+                const wif = parseInt(p.get('wifi')) || 0;
+                const srv = parseInt(p.get('s_fee')) || 0;
+                const oth = parseInt(p.get('other')) || 0;
+                const oth2 = parseInt(p.get('other2')) || 0;
 
-                const rentPeriod = (p.get('rent_period') || '').replace(/^undefined$|^null$/, '').trim();
-                const elecPeriod = (p.get('elec_period') || '').replace(/^undefined$|^null$/, '').trim();
+                const otherNote = cleanParam(p.get('other_note'));
+                const other2Desc = cleanParam(p.get('other2_desc'));
+                const other2Note = cleanParam(p.get('other2_note'));
+                const rentPeriod = cleanParam(p.get('rent_period'));
+                const elecPeriod = cleanParam(p.get('elec_period'));
                 
                 const total = rnt + eAmt + wat + wif + srv + oth + oth2;
                 const year = new Date().getFullYear();
@@ -348,46 +346,44 @@
                 document.getElementById('v_water_amt').innerText = fmt(wat);
                 document.getElementById('v_wifi_amt').innerText = fmt(wif);
                 document.getElementById('v_serv_amt').innerText = fmt(srv);
+                document.getElementById('v_other_amt').innerText = fmt(oth);
                 document.getElementById('v_total').innerText = globalTotal;
 
-                // HIỂN THỊ KỲ HẠN
-                let showPeriodBox = false;
+                // 1. Hiện Note dưới Other 1
+                if (otherNote) {
+                    const elNote1 = document.getElementById('v_other_note');
+                    elNote1.innerText = `(${otherNote})`;
+                    elNote1.style.display = 'block';
+                }
+
+                // 2. Hiện Other 2 + Note (nếu có số tiền > 0 hoặc có ghi chú)
+                if (oth2 > 0 || other2Note) {
+                    document.getElementById('row_other2').style.display = 'table-row';
+                    document.getElementById('v_other2_amt').innerText = fmt(oth2);
+                    if (other2Desc) {
+                        document.getElementById('lbl_other2').innerText = other2Desc;
+                    }
+                    if (other2Note) {
+                        const elNote2 = document.getElementById('v_other2_note');
+                        elNote2.innerText = `(${other2Note})`;
+                        elNote2.style.display = 'block';
+                    }
+                }
+
+                // 3. Hiện Kỳ tiền nhà & Kỳ điện nước
+                let hasPeriod = false;
                 if (rentPeriod) {
                     document.getElementById('v_rent_period').innerText = rentPeriod;
                     document.getElementById('row_rent_p').style.display = 'flex';
-                    showPeriodBox = true;
+                    hasPeriod = true;
                 }
                 if (elecPeriod) {
                     document.getElementById('v_elec_period').innerText = elecPeriod;
                     document.getElementById('row_elec_p').style.display = 'flex';
-                    showPeriodBox = true;
+                    hasPeriod = true;
                 }
-                if (showPeriodBox) {
+                if (hasPeriod) {
                     document.getElementById('box_period').style.display = 'block';
-                }
-
-                // HIỂN THỊ MỤC KHÁC 1
-                document.getElementById('v_other_amt').innerText = fmt(oth);
-                const elOtherNote = document.getElementById('v_other_note');
-                if (otherNote) {
-                    elOtherNote.innerText = `(${otherNote})`;
-                    elOtherNote.style.display = 'block';
-                }
-
-                // HIỂN THỊ MỤC KHÁC 2
-                if (oth2 > 0 || other2Note) {
-                    const rowOther2 = document.getElementById('row_other2');
-                    rowOther2.style.display = 'table-row';
-                    if (other2Desc) {
-                        document.getElementById('lbl_other2').innerText = other2Desc;
-                    }
-                    document.getElementById('v_other2_amt').innerText = fmt(oth2);
-                    
-                    if (other2Note) {
-                        const elOther2Note = document.getElementById('v_other2_note');
-                        elOther2Note.innerText = `(${other2Note})`;
-                        elOther2Note.style.display = 'block';
-                    }
                 }
 
                 document.getElementById('v_e_old').innerText = fmt(eO);
@@ -395,20 +391,10 @@
                 document.getElementById('v_e_used').innerText = fmt(eU);
                 document.getElementById('v_e_subtotal').innerText = fmt(eAmt);
 
-                // TẠO QR VIETQR
-                const bankClean = encodeURIComponent(c.bank.trim());
-                const accClean = encodeURIComponent(c.acc.trim());
-                const ownerClean = encodeURIComponent(c.owner.trim());
-                const qrUrl = `https://img.vietqr.io/image/${bankClean}-${accClean}-qr_only.png?amount=${total}&addInfo=${encodeURIComponent(code)}&accountName=${ownerClean}`;
-                
-                const qrImg = document.getElementById('v_qr');
-                qrImg.src = qrUrl;
-                qrImg.onerror = function() {
-                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`2|99|${c.acc}|${c.bank}|${total}|${code}`)}`;
-                };
-
+                const qrUrl = `https://img.vietqr.io/image/${c.bank}-${c.acc}-qr_only.png?amount=${total}&addInfo=${encodeURIComponent(code)}&accountName=${encodeURIComponent(c.owner)}`;
+                document.getElementById('v_qr').src = qrUrl;
             } catch (err) {
-                console.error("Lỗi:", err);
+                console.error(err);
                 showToast("Lỗi tải dữ liệu!", true);
             }
         }
